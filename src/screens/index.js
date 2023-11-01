@@ -7,6 +7,9 @@ import LoginScreen from './account/LoginScreen';
 import RegisterScreen from './account/RegisterScreen';
 import HomeScreen from './home/HomeScreen';
 import OrderScreen from './order/OrderScreen';
+import ProfileScreen from './profile/ProfileScreen';
+import BookingScreen from './booking/BookingScreen';
+import SearchScreen from './search/SearchScreen';
 
 const Stack = createNativeStackNavigator();
 const stackOptions = { headerShown: false, keyboardHandlingEnabled: true, headerVisible: false, gesturesEnabled: true };
@@ -18,7 +21,9 @@ const ScreensContainer = () => {
         <Stack.Screen name={SCREENS.LOGIN} component={LoginScreen} />
         <Stack.Screen name={SCREENS.REGISTER} component={RegisterScreen} />
         <Stack.Screen name={SCREENS.HOME} component={HomeScreen} />
-        <Stack.Screen name={SCREENS.ORDER_SCREEN} component={OrderScreen} />
+        <Stack.Screen name={SCREENS.PROFILE_SCREEN} component={ProfileScreen} />
+        <Stack.Screen name={SCREENS.SEARCH_SCREEN} component={SearchScreen} />
+        <Stack.Screen name={SCREENS.BOOKING_SCREEN} component={BookingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

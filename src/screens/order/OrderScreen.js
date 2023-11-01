@@ -1,6 +1,6 @@
 import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationContext, useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { historyBookData, newBookData } from '~/data';
 import { Footer } from '~/components/Footer';
@@ -9,14 +9,18 @@ import Header from '~/components/Header';
 import images from '~/themes/images';
 import Colors from '~/themes/colors';
 import { SCREEN_WIDTH, isEmptyObj, responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
+import SCREENS from '~/constant/screens';
+import { searchType } from '~/constant/content';
+import LayoutView from '~/components/LayoutView';
 
 const OrderScreen = () => {
   const [isSubmit, setCheckSubmit] = useState(false);
-  const navigation = useNavigation();
+  const navigation = React.useContext(NavigationContext);
   const [bookType, setBookType] = useState(orderType.NEW);
   const [pointSelect, setpointSelect] = useState(null);
-  const [newBookList, setNewBookList] = useState(newBookData ?? []);
+  const [newBookList, setNewBookList] = useState([]);
   const [historyBookLisk, setHistoryBookList] = useState(historyBookData ?? []);
+  console.log('Test pointSelect: ', JSON.stringify(pointSelect));
 
   useEffect(() => {
     if (!isEmptyObj(pointSelect)) {
@@ -81,7 +85,8 @@ const OrderScreen = () => {
   };
 
   const handleSubmit = (item) => () => {
-    navigation.navigate(screens.BOOKING_SCREEN, {
+    console.log('Test item: ', JSON.stringify(item));
+    navigation.navigate(SCREENS.BOOKING_SCREEN, {
       searchLocation: {
         bookType: bookType,
         locationType: searchType.INPUT,
@@ -116,7 +121,7 @@ const OrderScreen = () => {
   };
 
   return (
-    <Layout style={styles.viewContainer}>
+    <LayoutView>
       <Header barStyle="dark-content" title={'Thông tin chuyến'} onPressLeft={preventGoBack} />
       <SafeAreaView style={styles.container}>
         <View style={styles.viewContent}>
@@ -136,7 +141,7 @@ const OrderScreen = () => {
           </TouchableOpacity>
         </Footer>
       </SafeAreaView>
-    </Layout>
+    </LayoutView>
   );
 };
 
