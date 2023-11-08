@@ -10,6 +10,7 @@ import OrderScreen from './order/OrderScreen';
 import ProfileScreen from './profile/ProfileScreen';
 import BookingScreen from './booking/BookingScreen';
 import SearchScreen from './search/SearchScreen';
+import DirectionScreen from './booking/DirectionScreens';
 
 const Stack = createNativeStackNavigator();
 const stackOptions = { headerShown: false, keyboardHandlingEnabled: true, headerVisible: false, gesturesEnabled: true };
@@ -24,6 +25,7 @@ const ScreensContainer = () => {
         <Stack.Screen name={SCREENS.PROFILE_SCREEN} component={ProfileScreen} />
         <Stack.Screen name={SCREENS.SEARCH_SCREEN} component={SearchScreen} />
         <Stack.Screen name={SCREENS.BOOKING_SCREEN} component={BookingScreen} />
+        <Stack.Screen name={SCREENS.DIRECTION_SCREEN} component={DirectionScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

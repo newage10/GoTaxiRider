@@ -11,6 +11,7 @@ import LayoutView from '~/components/LayoutView';
 import SCREENS from '~/constant/screens';
 import images from '~/themes/images';
 import Fonts from '~/themes/Fonts';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 const SearchScreen = (props) => {
   const { currentPosition } = props?.route?.params ?? {};
@@ -209,7 +210,25 @@ const SearchScreen = (props) => {
           <TouchableOpacity style={styles.btnSearch}>
             <FastImage source={images.icSearch} style={styles.imgSearch} resizeMode="contain" />
           </TouchableOpacity>
-          <TextInput value={findWord} onChangeText={(text) => handleFindLocation(text, paramType.currentDestination)} style={styles.viewInputText} placeholder="Tìm kiếm điểm đến" autoCorrect={false} keyboardType={'default'} />
+          {/* <TextInput value={findWord} onChangeText={(text) => handleFindLocation(text, paramType.currentDestination)} style={styles.viewInputText} placeholder="Tìm kiếm điểm đến" autoCorrect={false} keyboardType={'default'} /> */}
+          <GooglePlacesAutocomplete
+            placeholder="Search"
+            query={{
+              key: 'AIzaSyBv_3P3yNTVYWvi3fdSENaTV-jJ1XzWWAw',
+              language: 'vi',
+            }}
+            onPress={(data, details = null) => {
+              console.log(data, details);
+            }}
+            onFail={(error) => console.error(error)}
+            requestUrl={{
+              url: 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
+              useOnPlatform: 'web',
+            }}
+            textInputProps={{
+              style: styles.viewInputText, // Set text color to black
+            }}
+          />
           <TouchableOpacity onPress={handleClear(paramType.currentDestination)} style={styles.viewClose}>
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
