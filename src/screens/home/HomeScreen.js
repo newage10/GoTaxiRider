@@ -15,10 +15,6 @@ import HomeModal from './HomeModal';
 import useToggleState from '~/hooks/useToggleState';
 import Colors from '~/themes/colors';
 
-//Giao diện trang home: phía trên: thanh tìm kiếm, kết hợp nút đi vào quản lý user
-//Modal phía dưới, chứa thông tin lịch sử chuyến đi
-//Khi click vào sẽ tìm kiếm chuyến đi
-
 const HomeScreen = () => {
   const navigation = React.useContext(NavigationContext);
   const [currentPosition, setCurrentPosition] = useState(null);
@@ -27,12 +23,19 @@ const HomeScreen = () => {
   const [historyVisible, toggleHistoryVisible] = useToggleState(false);
   const [historyTrip, setHistoryTrip] = useState(historyBookData);
 
+  /**
+   * Flow mở giao diện history order
+   * Mở cấp quyền vị trí
+   */
   useEffect(() => {
     SplashScreen.hide();
     toggleHistoryVisible();
-    handlePermissionsContact();
+    handlePermissionsLocation();
   }, []);
 
+  /**
+   * Flow get ví trí hiện tại
+   */
   useEffect(() => {
     if (currentPosition) {
       const { latitude, longitude } = currentPosition?.coords;
@@ -41,7 +44,10 @@ const HomeScreen = () => {
     }
   }, [currentPosition]);
 
-  const handlePermissionsContact = () => {
+  /**
+   * Hỏi quyền vị trí
+   */
+  const handlePermissionsLocation = () => {
     check(Platform.OS === 'ios' ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION)
       .then((result) => {
         switch (result) {
@@ -91,35 +97,31 @@ const HomeScreen = () => {
       });
   };
 
+  /**
+   * Hàm get vị trí hiện tại
+   */
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition((info) => {
       console.log('Test vi tri: ', info);
       setCurrentPosition(info);
     });
-    // Geolocation.getCurrentPosition(
-    //   (position) => {
-    //     console.log('Vi tri: ', position);
-    //     setCurrentPosition(position);
-    //   },
-    //   (error) => {
-    //     // See error code charts below.
-    //     console.log(error.code, error.message);
-    //   },
-    //   { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    // );
   };
 
+  /**
+   * View header search
+   * @returns
+   */
   const viewSearchHeader = () => {
     return (
       <>
         <View style={styles.viewSearhHeader}>
           <View style={styles.viewLeftHeader}>
             <TouchableOpacity style={styles.btnMap} onPress={toggleHistoryVisible}>
-              <FastImage source={images.icMap} style={styles.imgMap} resizeMode="contain" />
+              <FastImage source={images.icHistory} style={styles.imgMap} resizeMode="contain" />
             </TouchableOpacity>
           </View>
           <View style={styles.viewCenterHeader}>
-            <TouchableOpacity style={styles.btnSearch} onPress={() => navigation.navigate(SCREENS.SEARCH_SCREEN, { currentPosition })}>
+            <TouchableOpacity style={styles.btnSearch} onPress={() => navigation.navigate(SCREENS.MAP_SEARCH_SCREEN, { currentPosition })}>
               <FastImage source={images.icSearch} style={styles.imgSearh} resizeMode="contain" />
               <Text style={styles.txtSearch}>Thông tin các yêu cầu đặt xe</Text>
             </TouchableOpacity>
@@ -134,38 +136,29 @@ const HomeScreen = () => {
     );
   };
 
+  /**
+   * View Bottom lịch sử dặt xe
+   * @returns
+   */
   const viewBottomSheet = () => {
-    return <HomeModal modalVisible={historyVisible} toggleModalVisible={toggleHistoryVisible} modalTitle={'Lịch sử chuyến đi'} listDataModal={historyTrip} />;
+    return <HomeModal modalVisible={historyVisible} toggleModalVisible={toggleHistoryVisible} modalTitle={'Lịch sử đặt xe'} listDataModal={historyTrip} handleSelect={handleSelect} />;
   };
 
+  /**
+   *
+   * @param {*} item
+   * @returns
+   */
   const handleSelect = (item) => () => {
-    navigation.navigate(SCREENS.BOOKING, {
-      searchLocation: {
-        locationType: searchType.INPUT,
-        inputSource: { desc: item?.fromDesc, location: item?.fromLocation },
-        inputDestination: { desc: item?.toDesc, location: item?.toLocation },
-      },
-    });
-  };
-
-  const viewItemHistory = (item) => {
-    return (
-      <>
-        <TouchableOpacity style={[styles.viewItem]} onPress={handleSelect(item)}>
-          <View style={styles.viewItemLeft}>
-            <FastImage source={item?.goType === 1 ? images.icMotorcycle : item?.goType === 2 ? images.icCar : images.icCarXL} style={styles.icItem} resizeMode="contain" />
-            <View style={styles.viewItemContent}>
-              <Text style={styles.txtTitle} numberOfLines={2} ellipsizeMode="tail">{`Từ: ${item?.from}`}</Text>
-              <Text style={styles.txtDesc} numberOfLines={2} ellipsizeMode="tail">{`Đến: ${item?.to}`}</Text>
-            </View>
-          </View>
-          <View style={styles.viewItemRight}>
-            <Text style={styles.txtTitleRight}>{'Thời gian'}</Text>
-            <Text style={styles.txtDesc}>{item?.time}</Text>
-          </View>
-        </TouchableOpacity>
-      </>
-    );
+    console.log('Test 1 item: ', JSON.stringify(item));
+    navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN);
+    // navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN, {
+    //   searchLocation: {
+    //     locationType: searchType.INPUT,
+    //     inputSource: { desc: item?.fromDesc, location: item?.fromLocation },
+    //     inputDestination: { desc: item?.toDesc, location: item?.toLocation },
+    //   },
+    // });
   };
 
   return (
@@ -271,7 +264,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: 'white',
-    width: '75%',
+    width: '70%',
     borderRadius: responsiveSizeOS(15),
     paddingHorizontal: responsiveSizeOS(15),
     height: responsiveSizeOS(35),
@@ -297,7 +290,7 @@ const styles = StyleSheet.create({
   viewRightHeader: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: '25%',
+    width: '20%',
     height: responsiveSizeOS(35),
   },
   btnAcc: {

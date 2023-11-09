@@ -50,7 +50,7 @@ const LoginScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
-        <TouchableOpacity style={styles.btnSubmit} onPress={() => navigation.navigate(SCREENS.DIRECTION_SCREEN)}>
+        <TouchableOpacity style={styles.btnSubmit} onPress={() => navigation.navigate(SCREENS.HOME)}>
           <Text style={styles.txtSubmit}>Đăng nhập</Text>
         </TouchableOpacity>
         <View style={styles.viewLoginOption}>
@@ -63,7 +63,7 @@ const LoginScreen = () => {
         </View>
         <View style={styles.viewQuestion}>
           <Text style={styles.txtQuestion}>Bạn chưa có tài khoản? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate(SCREENS.HOME)}>
+          <TouchableOpacity onPress={() => navigation.navigate(SCREENS.REGISTER)}>
             <Text style={styles.txtRegister}>Đăng ký</Text>
           </TouchableOpacity>
         </View>

@@ -3,6 +3,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import numeral from 'numeral';
 
 export const screenWidth = Dimensions.get('window').width;
+export const screenHeight = Dimensions.get('window').height;
 
 export const defaultGateGradient = ['#0052D4', '#6FB1FC'];
 
@@ -107,3 +108,11 @@ export const removeAccents = (str) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D');
+
+const { width, height } = Dimensions.get('window');
+const ASPECT_RATIO = width / height;
+export const LATITUDE_DELTA = 0.0922;
+export const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+export const GOOGLE_MAPS_APIKEY = 'AIzaSyD6yL5xr1ainr_kWZvnyRkL-x_c0uDUorw';
+// export const GOOGLE_MAPS_APIKEY = 'AIzaSyBv_3P3yNTVYWvi3fdSENaTV-jJ1XzWWAw';
+//AIzaSyD6yL5xr1ainr_kWZvnyRkL-x_c0uDUorw

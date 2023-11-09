@@ -9,18 +9,13 @@ import { responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
 import Colors from '~/themes/colors';
 
 const HomeModal = (props) => {
-  const { modalVisible, toggleModalVisible, modalTitle, listDataModal } = props ?? {};
+  const { modalVisible, toggleModalVisible, modalTitle, listDataModal, handleSelect } = props ?? {};
 
   const handleClose = () => {
     toggleModalVisible();
   };
 
-  const handleSelect = (item) => {
-    return null;
-  };
-
   const viewItemHistory = (item) => {
-    console.log('Test now item: ', JSON.stringify(item));
     return (
       <>
         <TouchableOpacity style={[styles.viewItem]} onPress={handleSelect(item)}>
