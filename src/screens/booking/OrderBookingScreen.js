@@ -1,4 +1,4 @@
-import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, View, BackHandler } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
@@ -6,27 +6,32 @@ import { PermissionsLocation, defaultLocation } from '~/constant/content';
 import { GOOGLE_MAPS_APIKEY, LATITUDE_DELTA, LONGITUDE_DELTA, screenHeight, screenWidth } from '~/helper/GeneralMain';
 import MapViewDirections from 'react-native-maps-directions';
 import { check, openSettings, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import { NavigationContext } from '@react-navigation/native';
 
 const OrderBookingScreen = (props) => {
+  const { directionData } = props?.route?.params ?? {};
+  console.log('Test directionData: ', JSON.stringify(directionData));
+  const navigation = React.useContext(NavigationContext);
   const [currentPosition, setCurrentPosition] = useState(null);
   const [currentLatitude, setCurrentLatitude] = useState(defaultLocation?.latitude);
   const [currentLongitude, setCurrentLongitude] = useState(defaultLocation?.longitude);
-  const [coordinates, setCoordinates] = useState([
-    {
-      latitude: 10.771423,
-      longitude: 106.698471,
-    },
-    {
-      latitude: 10.772345748841335,
-      longitude: 106.72204997416084,
-    },
-  ]);
+  const [coordinates, setCoordinates] = useState([]);
+
+  console.log('Test coordinates: ', JSON.stringify(coordinates));
 
   const mapView = useRef(null);
 
   useEffect(() => {
     handlePermissionsLocation();
   }, []);
+
+  useEffect(() => {
+    if (directionData) {
+      // Tạo một mảng mới chứa các tọa độ hiện tại và tọa độ mới từ directionData
+      const newCoordinates = [...coordinates, directionData.fromLocation, directionData.toLocation];
+      setCoordinates(newCoordinates);
+    }
+  }, [directionData]);
 
   /**
    * Flow get ví trí hiện tại
@@ -38,6 +43,18 @@ const OrderBookingScreen = (props) => {
       setCurrentLongitude(longitude);
     }
   }, [currentPosition]);
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', preventGoBack);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', preventGoBack);
+    };
+  }, []);
+
+  const preventGoBack = () => {
+    navigation.goBack();
+    return true;
+  };
 
   /**
    * Hỏi quyền vị trí

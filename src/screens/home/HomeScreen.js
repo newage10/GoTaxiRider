@@ -121,7 +121,7 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.viewCenterHeader}>
-            <TouchableOpacity style={styles.btnSearch} onPress={() => navigation.navigate(SCREENS.MAP_SEARCH_SCREEN, { currentPosition })}>
+            <TouchableOpacity style={styles.btnSearch} onPress={() => navigation.navigate(SCREENS.SEARCH_SCREEN, { currentPosition })}>
               <FastImage source={images.icSearch} style={styles.imgSearh} resizeMode="contain" />
               <Text style={styles.txtSearch}>Thông tin các yêu cầu đặt xe</Text>
             </TouchableOpacity>
@@ -151,7 +151,7 @@ const HomeScreen = () => {
    */
   const handleSelect = (item) => () => {
     console.log('Test 1 item: ', JSON.stringify(item));
-    navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN);
+    navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN, { directionData: item });
     // navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN, {
     //   searchLocation: {
     //     locationType: searchType.INPUT,

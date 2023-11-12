@@ -42,8 +42,6 @@ const SearchScreen = (props) => {
   const [inputDestinationClear, setInputDestinationClear] = useState(null);
   const [isSubmit, setCheckSubmit] = useState(false);
 
-  const [searchResults, setSearchResults] = useState([]);
-
   useEffect(() => {
     if (locationType === searchType.CURRENT) {
       currentSource && currentDestination ? setCheckSubmit(true) : setCheckSubmit(false);
@@ -236,28 +234,6 @@ const SearchScreen = (props) => {
     requestLocationPermission();
   }, []);
 
-  const handleGoogleSearch = async (text) => {
-    setFindWordInputSource(text);
-    if (text.length > 0) {
-      try {
-        const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_APIKEY}&language=vi`;
-        const response = await fetch(url);
-        const json = await response.json();
-        setSearchResults(json.predictions);
-        // Có thể bạn muốn làm gì đó với kết quả tìm kiếm, ví dụ hiển thị trong một FlatList
-        console.log('Test search list: ', JSON.stringify(json));
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  console.log('Test searchResults: ', JSON.stringify(searchResults));
-
-  console.log('Test locationList: ', JSON.stringify(locationList));
-
   const viewCurrentLocation = () => {
     return (
       <>
@@ -265,30 +241,154 @@ const SearchScreen = (props) => {
           <TouchableOpacity style={styles.btnSearch}>
             <FastImage source={images.icSearch} style={styles.imgSearch} resizeMode="contain" />
           </TouchableOpacity>
-          <TextInput
-            value={findWord}
-            onChangeText={handleGoogleSearch}
-            // onChangeText={(text) => handleFindLocation(text, paramType.currentDestination)}
-            style={styles.viewInputText}
-            placeholder="Tìm kiếm điểm đến"
-            autoCorrect={false}
-            keyboardType={'default'}
+          <GooglePlacesAutocomplete
+            currentLocation={false} // Cho phép sử dụng vị trí hiện tại
+            currentLocationLabel="Vị trí hiện tại" // Label cho nút vị trí hiện tại
+            debounce={200} // Độ trễ là 200ms giữa các yêu cầu
+            disableScroll={false} // Không vô hiệu hóa việc cuộn danh sách
+            enableHighAccuracyLocation={false} // Không yêu cầu vị trí GPS chính xác cao
+            enablePoweredByContainer={false} // Không hiển thị "Powered by Google"
+            fetchDetails={true} // Lấy thông tin chi tiết về địa điểm được chọn
+            GooglePlacesDetailsQuery={{ fields: 'formatted_address' }} // Ví dụ về truy vấn chi tiết
+            GooglePlacesSearchQuery={{ rankby: 'distance', type: 'cafe' }} // Tìm kiếm quán cafe gần nhất
+            keepResultsAfterBlur={true} // Giữ kết quả sau khi input mất focus
+            keyboardShouldPersistTaps="handled" // Bàn phím không tự động ẩn sau khi chạm
+            listEmptyComponent={() => <Text>Không tìm thấy kết quả</Text>} // Component hiển thị khi không có kết quả
+            listViewDisplayed="auto" // Tự động quản lý hiển thị danh sách
+            minLength={1} // Số ký tự tối thiểu để bắt đầu tìm kiếm
+            nearbyPlacesAPI="GooglePlacesSearch" // Sử dụng API tìm kiếm địa điểm gần đó
+            onPress={(data, details = null) => {
+              // xử lý khi địa điểm được chọn
+            }}
+            placeholder="Tìm kiếm địa điểm" // Text hiển thị khi input trống
+            predefinedPlacesAlwaysVisible={true} // Hiển thị các địa điểm xác định trước luôn hiển thị
+            query={{
+              key: GOOGLE_MAPS_APIKEY,
+              language: 'vi', // Ngôn ngữ cho kết quả tìm kiếm
+              components: 'country:vn', // Giới hạn tìm kiếm trong nước Việt Nam
+            }}
+            renderRow={(data) => (
+              <View>
+                <Text>{data.description}</Text>
+              </View>
+            )} // Custom hiển thị hàng trong danh sách
+            // styles={{
+            //   // textInputContainer: {
+            //   //   backgroundColor: 'rgb(255, 255, 255)', // màu nền giống như viewSearch
+            //   //   // height: responsiveSizeOS(40), // chiều cao giống như viewSearch
+            //   //   width: '100%', // Lấy chiều rộng tối đa
+            //   //   paddingHorizontal: responsiveSizeOS(10),
+            //   // },
+            //   textInputContainer: {
+            //     backgroundColor: 'rgb(255, 255, 255)', // Đặt màu nền của container chứa TextInput
+            //     // height: responsiveSizeOS(40), // Đặt chiều cao như trong styles.viewSearch
+            //     // borderRadius: responsiveSizeOS(10), // Đặt borderRadius như trong styles.viewSearch
+            //     // Các styles khác giống như trong styles.viewSearch của bạn
+            //   },
+            //   textInput: {
+            //     marginLeft: 0, // loại bỏ lề mặc định nếu có
+            //     marginRight: 0, // loại bỏ lề mặc định nếu có
+            //     height: '100%', // chiều cao giống như container
+            //     // Thêm bất kỳ styles nào khác cần thiết cho text input
+            //   },
+            //   // Bạn có thể cần tùy chỉnh các styles khác cho list, separator, v.v.
+            //   // listView: {
+            //   //   // Nếu bạn muốn tùy chỉnh style cho danh sách kết quả gợi ý
+            //   //   backgroundColor: 'white', // Màu nền cho danh sách gợi ý
+            //   //   marginTop: 10, // Khoảng cách từ GooglePlacesAutocomplete
+            //   //   borderBottomLeftRadius: 8, // Bo góc dưới bên trái
+            //   //   borderBottomRightRadius: 8, // Bo góc dưới bên phải
+            //   //   borderColor: '#cccccc', // Màu viền của danh sách
+            //   //   borderWidth: 1, // Độ rộng viền
+            //   //   shadowColor: '#000000', // Màu bóng
+            //   //   shadowRadius: 5, // Bán kính bóng
+            //   //   shadowOpacity: 0.1, // Độ trong suốt của bóng
+            //   //   elevation: 3, // Độ cao (đối với Android)
+            //   //   marginHorizontal: 10, // Khoảng cách ngang từ cạnh màn hình
+            //   //   zIndex: 5, // Đảm bảo listView không bị che khuất bởi các phần tử khác
+            //   // },
+            //   listView: {
+            //     // height: 500,
+            //     backgroundColor: 'blue', // Màu nền xanh dương cho danh sách gợi ý
+            //     borderColor: 'blue', // Đặt màu viền giống màu nền
+            //     borderWidth: 1,
+            //     marginHorizontal: 0, // Đặt margin ngang là 0 để listView phù hợp với viewSearch
+            //     borderTopWidth: 0, // Loại bỏ viền trên cùng nếu bạn không muốn có đường phân cách
+            //     // Thêm shadow hoặc elevation nếu bạn muốn listView có độ nổi
+            //     shadowColor: '#000000',
+            //     shadowRadius: 4,
+            //     shadowOpacity: 0.5,
+            //     elevation: 4,
+            //     // Điều chỉnh các khoảng cách và padding nếu cần
+            //   },
+            //   predefinedPlacesDescription: {
+            //     // Styles cho các địa điểm được xác định trước
+            //   },
+            //   // ...các styles khác nếu cần
+            // }}
+
+            styles={{
+              textInputContainer: {
+                backgroundColor: 'rgb(255, 255, 255)', // Đặt màu nền của container chứa TextInput
+                borderWidth: 0, // Bỏ viền nếu bạn không muốn có viền
+                shadowColor: '#000', // Màu bóng
+                shadowOffset: { width: 0, height: 2 }, // Offset cho bóng
+                shadowOpacity: 0.1, // Độ mờ của bóng
+                shadowRadius: 4, // Bán kính bóng
+                elevation: 5, // Độ nổi cho Android
+                borderRadius: responsiveSizeOS(10), // Bo tròn góc
+                paddingHorizontal: responsiveSizeOS(10),
+                width: '100%', // Chiều rộng tối đa
+              },
+              textInput: {
+                height: responsiveSizeOS(40), // Đặt chiều cao cho TextInput
+                // Thêm bất kỳ styles nào khác cần thiết cho text input
+              },
+              listView: {
+                backgroundColor: 'white', // Màu nền cho danh sách gợi ý
+                borderTopWidth: 0, // Bỏ viền trên cùng
+                marginHorizontal: 0, // Bỏ margin ngang
+                // Thêm shadow hoặc elevation nếu bạn muốn listView có độ nổi
+                // Điều chỉnh các khoảng cách và padding nếu cần
+              },
+              // Cấu hình style cho mỗi hàng của kết quả gợi ý
+              row: {
+                backgroundColor: 'white', // Màu nền cho mỗi hàng
+                padding: 10, // Padding cho mỗi hàng
+                // Thêm bất kỳ styles nào khác cần thiết cho mỗi hàng
+              },
+              // ...các styles khác nếu cần
+            }}
+            // textInputProps={{
+            //   autoCapitalize: 'none',
+            //   autoCorrect: false,
+            // }} // Props cho input text
+            timeout={30000} // Timeout cho yêu cầu là 30 giây
           />
+          {/* <TextInput value={findWord} onChangeText={(text) => handleFindLocation(text, paramType.currentDestination)} style={styles.viewInputText} placeholder="Tìm kiếm điểm đến" autoCorrect={false} keyboardType={'default'} /> */}
+          {/* <GooglePlacesAutocomplete
+            placeholder="Search"
+            query={{
+              key: 'AIzaSyBv_3P3yNTVYWvi3fdSENaTV-jJ1XzWWAw',
+              language: 'vi',
+            }}
+            onPress={(data, details = null) => {
+              console.log(data, details);
+            }}
+            onFail={(error) => console.error(error)}
+            requestUrl={{
+              url: 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
+              useOnPlatform: 'web',
+            }}
+            textInputProps={{
+              style: styles.viewInputText, // Set text color to black
+            }}
+          /> */}
           <TouchableOpacity onPress={handleClear(paramType.currentDestination)} style={styles.viewClose}>
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
         </View>
-        <FlatList
-          data={searchResults}
-          keyExtractor={(item, index) => item.place_id || index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.listItem}>
-              <Text style={styles.itemText}>{item.description}</Text>
-            </View>
-          )}
-          numColumns={1}
-        />
-        <FlatList
+        {/* <FlatList
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="always"
           data={locationList}
@@ -296,9 +396,9 @@ const SearchScreen = (props) => {
           renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
           keyExtractor={(item, index) => index.toString()}
           onEndReachedThreshold={0.5}
-          numColumns={1}
+          numColumns={2}
           style={styles.locationList}
-        />
+        /> */}
       </>
     );
   };
@@ -432,13 +532,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsiveSizeOS(15),
   },
   viewSearch: {
-    height: responsiveSizeOS(40),
+    // height: responsiveSizeOS(40),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: 'rgb(255, 255, 255)',
-    borderWidth: responsiveSizeOS(0.5),
-    borderColor: 'rgb(203, 203, 203)',
+    // borderWidth: responsiveSizeOS(0.5),
+    // borderColor: 'rgb(203, 203, 203)',
     borderRadius: responsiveSizeOS(10),
     paddingHorizontal: responsiveSizeOS(10),
     marginBottom: responsiveSizeOS(16),
@@ -454,7 +554,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   viewInputText: {
-    height: responsiveSizeOS(40),
+    // height: responsiveSizeOS(40),
     fontSize: responsiveFontSizeOS(16),
     fontFamily: Fonts.Regular,
     color: 'rgb(11, 11, 11)',
@@ -462,6 +562,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     width: '85%',
     paddingVertical: responsiveSizeOS(1),
+    backgroundColor: 'green',
   },
   viewClose: {
     justifyContent: 'center',
@@ -535,13 +636,5 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSizeOS(16),
     color: 'white',
     fontFamily: Fonts.Bold,
-  },
-  listItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  itemText: {
-    fontSize: 16,
   },
 });
