@@ -11,7 +11,6 @@ import LayoutView from '~/components/LayoutView';
 import SCREENS from '~/constant/screens';
 import images from '~/themes/images';
 import Fonts from '~/themes/Fonts';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 const SearchScreen = (props) => {
   const { currentPosition } = props?.route?.params ?? {};
@@ -44,6 +43,16 @@ const SearchScreen = (props) => {
 
   const [searchResults, setSearchResults] = useState([]);
 
+  // Gọi hàm yêu cầu quyền khi component được mounted
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+
+  /**
+   * Vấn đề: locationType ?
+   * currentSource ?
+   * currentDestination ?
+   */
   useEffect(() => {
     if (locationType === searchType.CURRENT) {
       currentSource && currentDestination ? setCheckSubmit(true) : setCheckSubmit(false);
@@ -148,6 +157,11 @@ const SearchScreen = (props) => {
     );
   };
 
+  /**
+   * Phân luồng tìm địa điểm
+   * @param {*} locationType
+   * @returns
+   */
   const viewFlowExpand = (locationType) => {
     switch (locationType) {
       case searchType.CURRENT:
@@ -205,7 +219,9 @@ const SearchScreen = (props) => {
     }
   };
 
-  // Bổ sung đoạn mã yêu cầu quyền truy cập vị trí
+  /**
+   * Bổ sung đoạn mã yêu cầu quyền truy cập vị trí
+   */
   const requestLocationPermission = async () => {
     if (Platform.OS === 'ios') {
       // Quyền truy cập vị trí trên iOS sẽ được yêu cầu thông qua plist
@@ -231,11 +247,6 @@ const SearchScreen = (props) => {
     }
   };
 
-  // Gọi hàm yêu cầu quyền khi component được mounted
-  React.useEffect(() => {
-    requestLocationPermission();
-  }, []);
-
   const handleGoogleSearch = async (text) => {
     setFindWordInputSource(text);
     if (text.length > 0) {
@@ -258,6 +269,10 @@ const SearchScreen = (props) => {
 
   console.log('Test locationList: ', JSON.stringify(locationList));
 
+  /**
+   * Flow cho vị trí hiện tại
+   * @returns
+   */
   const viewCurrentLocation = () => {
     return (
       <>
@@ -303,6 +318,10 @@ const SearchScreen = (props) => {
     );
   };
 
+  /**
+   * Luồng cho vị trí A, B
+   * @returns
+   */
   const viewInputLocation = () => {
     return (
       <>
@@ -372,6 +391,9 @@ const SearchScreen = (props) => {
     );
   };
 
+  /**
+   * Giao diện main
+   */
   return (
     <LayoutView>
       <Header barStyle="dark-content" title={'Tìm kiếm'} onPressLeft={preventGoBack} />
