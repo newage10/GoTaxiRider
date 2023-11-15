@@ -11,6 +11,7 @@ import LayoutView from '~/components/LayoutView';
 import SCREENS from '~/constant/screens';
 import images from '~/themes/images';
 import Fonts from '~/themes/Fonts';
+import Colors from '~/themes/colors';
 
 const SearchScreen = (props) => {
   const { currentPosition } = props?.route?.params ?? {};
@@ -148,10 +149,14 @@ const SearchScreen = (props) => {
   };
 
   const viewItemLocation = (item, type) => {
+    console.log('Test item desc: ', JSON.stringify(item));
     return (
       <>
         <TouchableOpacity style={styles.btnLocationItem} onPress={handleBooking(item, type)}>
           <Text style={styles.txtLocationItem}>{item?.text}</Text>
+          <Text style={styles.txtLocationDesc} numberOfLines={1} ellipsizeMode="tail">
+            {item?.desc}
+          </Text>
         </TouchableOpacity>
       </>
     );
@@ -265,6 +270,24 @@ const SearchScreen = (props) => {
     }
   };
 
+  const handlePlaceDetails = async (placeId) => {
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry&key=${GOOGLE_MAPS_APIKEY}`;
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (json.status === 'OK') {
+        const location = json.result.geometry.location;
+        console.log('Location details: ', location);
+        // Tại đây bạn có thể làm gì đó với thông tin vị trí, ví dụ lưu trữ nó hoặc hiển thị trên bản đồ
+      } else {
+        console.error('Error fetching place details:', json.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   console.log('Test searchResults: ', JSON.stringify(searchResults));
 
   console.log('Test locationList: ', JSON.stringify(locationList));
@@ -293,27 +316,30 @@ const SearchScreen = (props) => {
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
         </View>
-        <FlatList
-          data={searchResults}
-          keyExtractor={(item, index) => item.place_id || index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.listItem}>
-              <Text style={styles.itemText}>{item.description}</Text>
-            </View>
-          )}
-          numColumns={1}
-        />
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="always"
-          data={locationList}
-          removeClippedSubviews={true}
-          renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
-          keyExtractor={(item, index) => index.toString()}
-          onEndReachedThreshold={0.5}
-          numColumns={1}
-          style={styles.locationList}
-        />
+        {findWord ? (
+          <FlatList
+            data={searchResults}
+            keyExtractor={(item, index) => item.place_id || index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <Text style={styles.itemText}>{item.description}</Text>
+              </View>
+            )}
+            numColumns={1}
+          />
+        ) : (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="always"
+            data={locationList}
+            removeClippedSubviews={true}
+            renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
+            keyExtractor={(item, index) => index.toString()}
+            onEndReachedThreshold={0.5}
+            numColumns={1}
+            style={styles.locationList}
+          />
+        )}
       </>
     );
   };
@@ -503,13 +529,18 @@ const styles = StyleSheet.create({
   btnLocationItem: {
     paddingHorizontal: responsiveSizeOS(10),
     paddingVertical: responsiveSizeOS(5),
-    borderRadius: responsiveSizeOS(8),
-    borderWidth: responsiveSizeOS(1),
-    borderColor: 'black',
+    // borderRadius: responsiveSizeOS(8),
+    // borderWidth: responsiveSizeOS(1),
+    // borderColor: 'black',
     marginRight: responsiveSizeOS(15),
     marginVertical: responsiveSizeOS(5),
   },
   txtLocationItem: {
+    fontSize: responsiveFontSizeOS(14),
+    fontFamily: Fonts.Regular,
+  },
+  txtLocationDesc: {
+    color: Colors.txtGrayDesc,
     fontSize: responsiveFontSizeOS(14),
     fontFamily: Fonts.Regular,
   },

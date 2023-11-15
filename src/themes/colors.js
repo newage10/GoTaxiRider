@@ -7,6 +7,7 @@ const Colors = {
   txtWhite: 'rgb(255,255,255)',
   txtBlue: '#3422F2',
   txtGray: 'rgb(211,211,211)',
+  txtGrayDesc: 'rgb(102,102,102)',
   bgGrayT: 'rgba(211,211,211,0.9)',
 };
 
