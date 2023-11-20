@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, BackHandler, SafeAreaView, ScrollView, RefreshC
 import React, { useEffect, useState } from 'react';
 import Header from '~/components/Header';
 import { NavigationContext, useNavigation } from '@react-navigation/native';
-import { GOOGLE_MAPS_APIKEY, removeAccents, responsiveFontSizeOS, responsiveSizeOS, SCREEN_WIDTH } from '~/helper/GeneralMain';
+import { GOOGLE_MAPS_APIKEY, isEmptyArr, removeAccents, responsiveFontSizeOS, responsiveSizeOS, SCREEN_WIDTH } from '~/helper/GeneralMain';
 import FastImage from 'react-native-fast-image';
 import getDirections from 'react-native-google-maps-directions';
 import { Footer } from '~/components/Footer';
@@ -17,32 +17,36 @@ const SearchScreen = (props) => {
   const { currentPosition } = props?.route?.params ?? {};
   console.log('Test now: ', JSON.stringify(currentPosition));
   const navigation = React.useContext(NavigationContext);
+
   const [findWord, setFindWord] = useState(null);
   const [findWordInputSource, setFindWordInputSource] = useState(null);
-  const [findWordInputDestanation, setFindWordInputDestanation] = useState(null);
+  const [findWordInputDestination, setFindWordInputDestination] = useState(null);
+  const [searchCurrentResults, setSearchCurrentResults] = useState([]);
+  const [searchInputSourceResults, setSearchInputSourceResults] = useState([]);
+  const [searchInputDestinationResults, setSearchInputDestinationResults] = useState([]);
+  const [searchInputType, setSearchInputType] = useState(null);
+
   const [locationList, setLocationList] = useState(locationData ?? []);
   const [locationListInputSource, setLocationListInputSource] = useState(locationData ?? []);
   const [locationListInputDestination, setLocationListInputDestination] = useState(locationData ?? []);
   const [locationType, setLocationType] = useState(searchType.CURRENT);
   const [currentSource, setCurrentSource] = useState(currentPosition);
-  const [currentSourceName, setCurrentSourceName] = useState(null);
-  const [currentSourceFirst, setCurrentSourceFirst] = useState(null);
-  const [currentSourceclear, setCurrentSourceClear] = useState(null);
+  // const [currentSourceName, setCurrentSourceName] = useState(null);
+  // const [currentSourceFirst, setCurrentSourceFirst] = useState(null);
+  // const [currentSourceclear, setCurrentSourceClear] = useState(null);
   const [currentDestination, setCurrentDestination] = useState(null);
-  const [currentDestinationName, setCurrentDestinationName] = useState(null);
-  const [currentDestinationFirst, setCurrentDestinationFirst] = useState(null);
-  const [currentDestinationClear, setCurrentDestinationClear] = useState(null);
+  // const [currentDestinationName, setCurrentDestinationName] = useState(null);
+  // const [currentDestinationFirst, setCurrentDestinationFirst] = useState(null);
+  // const [currentDestinationClear, setCurrentDestinationClear] = useState(null);
   const [inputSource, setInputSource] = useState(null);
-  const [inputSourceName, setInputSourceName] = useState(null);
-  const [inputSourceFirst, setInputSourceFirst] = useState(null);
-  const [InputSourceclear, setInputSourceClear] = useState(null);
+  // const [inputSourceName, setInputSourceName] = useState(null);
+  // const [inputSourceFirst, setInputSourceFirst] = useState(null);
+  // const [InputSourceclear, setInputSourceClear] = useState(null);
   const [inputDestination, setInputDestination] = useState(null);
-  const [inputDestinationName, setInputDestinationName] = useState(null);
-  const [inputDestinationFirst, setInputDestinationFirst] = useState(null);
-  const [inputDestinationClear, setInputDestinationClear] = useState(null);
+  // const [inputDestinationName, setInputDestinationName] = useState(null);
+  // const [inputDestinationFirst, setInputDestinationFirst] = useState(null);
+  // const [inputDestinationClear, setInputDestinationClear] = useState(null);
   const [isSubmit, setCheckSubmit] = useState(false);
-
-  const [searchResults, setSearchResults] = useState([]);
 
   // Gọi hàm yêu cầu quyền khi component được mounted
   useEffect(() => {
@@ -62,6 +66,9 @@ const SearchScreen = (props) => {
     }
   }, [locationType, currentDestination, inputSource, inputDestination]);
 
+  /**
+   * Hàm handle nút back vật lý
+   */
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', preventGoBack);
     return () => {
@@ -69,6 +76,11 @@ const SearchScreen = (props) => {
     };
   }, []);
 
+  /**
+   * Hàm clear text
+   * @param {*} type
+   * @returns
+   */
   const handleClear = (type) => () => {
     switch (type) {
       case paramType.currentDestination:
@@ -80,7 +92,7 @@ const SearchScreen = (props) => {
         setLocationListInputSource(locationData);
         break;
       case paramType.inputDestination:
-        setFindWordInputDestanation(null);
+        setFindWordInputDestination(null);
         setLocationListInputDestination(locationData);
         break;
       default:
@@ -88,6 +100,11 @@ const SearchScreen = (props) => {
     }
   };
 
+  /**
+   * Hàm tìm kiếm dữ liệu get san
+   * @param {*} text
+   * @param {*} type
+   */
   const handleFindLocation = (text, type) => {
     const searchWord = removeAccents(text?.trim()?.toLowerCase());
     const filterData = locationData.filter((item) => removeAccents(item.text.toLowerCase()).includes(searchWord));
@@ -102,32 +119,38 @@ const SearchScreen = (props) => {
         break;
       case paramType.inputDestination:
         setLocationListInputDestination(filterData);
-        setFindWordInputDestanation(text);
+        setFindWordInputDestination(text);
         break;
       default:
         break;
     }
   };
 
+  /**
+   * Hàm xử lý booking
+   * @param {*} item
+   * @param {*} type
+   * @returns
+   */
   const handleBooking = (item, type) => () => {
     switch (type) {
       case paramType.currentSource:
-        setCurrentSourceName(item?.text);
+        // setCurrentSourceName(item?.text);
         setCurrentSource(item);
         break;
       case paramType.currentDestination:
-        setCurrentDestinationName(item?.text);
+        // setCurrentDestinationName(item?.text);
         setFindWord(item?.text);
         setCurrentDestination(item);
         break;
       case paramType.inputSource:
-        setInputSourceName(item?.text);
+        // setInputSourceName(item?.text);
         setFindWordInputSource(item?.text);
         setInputSource(item);
         break;
       case paramType.inputDestination:
-        setInputDestinationName(item?.text);
-        setFindWordInputDestanation(item?.text);
+        // setInputDestinationName(item?.text);
+        setFindWordInputDestination(item?.text);
         setInputDestination(item);
         break;
       default:
@@ -135,19 +158,37 @@ const SearchScreen = (props) => {
     }
   };
 
+  /**
+   * Mở giao diện booking trên map
+   */
   const handleSearch = () => {
     navigation.navigate(SCREENS.BOOKING_SCREEN, { searchLocation: { locationType, currentSource, currentDestination, inputSource, inputDestination } });
   };
 
+  /**
+   * Hàm go back
+   * @returns
+   */
   const preventGoBack = () => {
     navigation.goBack();
     return true;
   };
 
+  /**
+   * Hàm chuyển đổi Tab
+   * @param {*} type
+   * @returns
+   */
   const handleSelectLocation = (type) => () => {
     setLocationType(type);
   };
 
+  /**
+   * Giao diện chi tiết của một địa điểm
+   * @param {*} item
+   * @param {*} type
+   * @returns
+   */
   const viewItemLocation = (item, type) => {
     console.log('Test item desc: ', JSON.stringify(item));
     return (
@@ -163,7 +204,7 @@ const SearchScreen = (props) => {
   };
 
   /**
-   * Phân luồng tìm địa điểm
+   * Phân luồng tìm địa điểm (view)
    * @param {*} locationType
    * @returns
    */
@@ -178,46 +219,56 @@ const SearchScreen = (props) => {
     }
   };
 
+  /**
+   * Hàm focust textinput
+   * @param {*} key
+   * @returns
+   */
   const handleInputFocus = (key) => () => {
     switch (key) {
       case paramType.currentSource:
-        setCurrentSourceClear(true);
-        setCurrentSourceFirst(true);
+        // setCurrentSourceClear(true);
+        // setCurrentSourceFirst(true);
         break;
       case paramType.currentDestination:
-        setCurrentDestinationClear(true);
-        setCurrentDestinationFirst(true);
+        // setCurrentDestinationClear(true);
+        // setCurrentDestinationFirst(true);
         break;
       case paramType.inputSource:
-        setInputSourceClear(true);
-        setInputSourceFirst(true);
+        // setInputSourceClear(true);
+        // setInputSourceFirst(true);
         break;
       case paramType.inputDestination:
-        setInputDestinationClear(true);
-        setInputDestinationFirst(true);
+        // setInputDestinationClear(true);
+        // setInputDestinationFirst(true);
         break;
       default:
         break;
     }
   };
 
+  /**
+   * Hàm blur textinput
+   * @param {*} key
+   * @returns
+   */
   const handleInputBlur = (key) => () => {
     switch (key) {
       case paramType.currentSource:
-        setCurrentSourceClear(false);
-        setCurrentSourceFirst(false);
+        // setCurrentSourceClear(false);
+        // setCurrentSourceFirst(false);
         break;
       case paramType.currentDestination:
-        setCurrentDestinationClear(false);
-        setCurrentDestinationFirst(false);
+        // setCurrentDestinationClear(false);
+        // setCurrentDestinationFirst(false);
         break;
       case paramType.inputSource:
-        setInputSourceClear(false);
-        setInputSourceFirst(false);
+        // setInputSourceClear(false);
+        // setInputSourceFirst(false);
         break;
       case paramType.inputDestination:
-        setInputDestinationClear(false);
-        setInputDestinationFirst(false);
+        // setInputDestinationClear(false);
+        // setInputDestinationFirst(false);
         break;
       default:
         break;
@@ -252,23 +303,89 @@ const SearchScreen = (props) => {
     }
   };
 
-  const handleGoogleSearch = async (text) => {
-    setFindWordInputSource(text);
+  /**
+   * Hàm api search google map
+   * @param {*} text
+   */
+  const handleGoogleSearch = async (text, type) => {
+    let textResult;
+    setSearchInputType(type);
+    switch (type) {
+      case paramType.currentDestination:
+        setFindWord(text);
+        textResult = await getApiPlaceMap(text);
+        setSearchCurrentResults(textResult);
+        textResult?.length === 0 ? handleFindLocation(text, type) : null;
+        break;
+      case paramType.inputSource:
+        setFindWordInputSource(text);
+        textResult = await getApiPlaceMap(text);
+        setSearchInputSourceResults(textResult);
+        handleFindLocation(text, type);
+        break;
+      case paramType.inputDestination:
+        setFindWordInputDestination(text);
+        textResult = await getApiPlaceMap(text);
+        setSearchInputDestinationResults(textResult);
+        handleFindLocation(text, type);
+        break;
+      default:
+        break;
+    }
+    // setFindWordInputSource(text);
+    // setSearchInputType(type);
+    // if (text.length > 0) {
+    //   try {
+    //     const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_APIKEY}&language=vi`;
+    //     const response = await fetch(url);
+    //     const json = await response.json();
+    //     setSearchResults(json.predictions);
+    //     // Có thể bạn muốn làm gì đó với kết quả tìm kiếm, ví dụ hiển thị trong một FlatList
+    //     console.log('Test search list: ', JSON.stringify(json));
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // } else {
+    //   setSearchResults([]);
+    // }
+  };
+
+  const getApiPlaceMap = async (text) => {
     if (text.length > 0) {
       try {
         const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_APIKEY}&language=vi`;
         const response = await fetch(url);
         const json = await response.json();
-        setSearchResults(json.predictions);
+        return json.predictions;
+        // setSearchResults(json.predictions);
         // Có thể bạn muốn làm gì đó với kết quả tìm kiếm, ví dụ hiển thị trong một FlatList
         console.log('Test search list: ', JSON.stringify(json));
       } catch (error) {
         console.error(error);
       }
     } else {
-      setSearchResults([]);
+      return [];
+      // setSearchResults([]);
     }
   };
+
+  // useEffect(() => {
+  //   if (findWord && isEmptyArr(searchCurrentResults) && searchInputType === paramType.currentDestination) {
+  //     handleFindLocation(findWord, searchInputType);
+  //   }
+  // }, [findWord, searchInputType, searchCurrentResults]);
+
+  // useEffect(() => {
+  //   if (findWordInputSource && isEmptyArr(searchInputSourceResults) && searchInputType === paramType.inputSource) {
+  //     handleFindLocation(findWordInputSource, searchInputType);
+  //   }
+  // }, [findWordInputSource, searchInputType, searchInputSourceResults]);
+
+  // useEffect(() => {
+  //   if (findWordInputDestination && isEmptyArr(searchInputDestinationResults) && searchInputType === paramType.inputDestination) {
+  //     handleFindLocation(findWordInputDestination, searchInputType);
+  //   }
+  // }, [findWordInputDestination, searchInputType, searchInputDestinationResults]);
 
   const handlePlaceDetails = async (placeId) => {
     try {
@@ -288,7 +405,7 @@ const SearchScreen = (props) => {
     }
   };
 
-  console.log('Test searchResults: ', JSON.stringify(searchResults));
+  // console.log('Test searchResults: ', JSON.stringify(searchResults));
 
   console.log('Test locationList: ', JSON.stringify(locationList));
 
@@ -305,8 +422,8 @@ const SearchScreen = (props) => {
           </TouchableOpacity>
           <TextInput
             value={findWord}
-            onChangeText={handleGoogleSearch}
-            // onChangeText={(text) => handleFindLocation(text, paramType.currentDestination)}
+            // onChangeText={handleGoogleSearch}
+            onChangeText={(text) => handleGoogleSearch(text, paramType.currentDestination)}
             style={styles.viewInputText}
             placeholder="Tìm kiếm điểm đến"
             autoCorrect={false}
@@ -316,9 +433,9 @@ const SearchScreen = (props) => {
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
         </View>
-        {findWord ? (
+        {findWord && searchCurrentResults.length > 0 ? (
           <FlatList
-            data={searchResults}
+            data={searchCurrentResults}
             keyExtractor={(item, index) => item.place_id || index.toString()}
             renderItem={({ item }) => (
               <View style={styles.listItem}>
@@ -374,7 +491,7 @@ const SearchScreen = (props) => {
             <FastImage source={images.icSearch} style={styles.imgSearch} resizeMode="contain" />
           </TouchableOpacity>
           <TextInput
-            value={findWordInputDestanation}
+            value={findWordInputDestination}
             onFocus={handleInputFocus(paramType.inputDestination)}
             onBlur={handleInputBlur(paramType.inputDestination)}
             onChangeText={(text) => handleFindLocation(text, paramType.inputDestination)}
@@ -387,7 +504,31 @@ const SearchScreen = (props) => {
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
         </View>
-        {inputSourceFirst ? (
+        {findWordInputSource && searchInputSourceResults.length > 0 ? (
+          <FlatList
+            data={searchInputSourceResults}
+            keyExtractor={(item, index) => item.place_id || index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <Text style={styles.itemText}>{item.description}</Text>
+              </View>
+            )}
+            numColumns={1}
+          />
+        ) : (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="always"
+            data={locationListInputSource}
+            removeClippedSubviews={true}
+            renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
+            keyExtractor={(item, index) => index.toString()}
+            onEndReachedThreshold={0.5}
+            numColumns={1}
+            style={styles.locationList}
+          />
+        )}
+        {/* {inputSourceFirst ? (
           <FlatList
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="always"
@@ -399,8 +540,32 @@ const SearchScreen = (props) => {
             numColumns={2}
             style={styles.locationList}
           />
-        ) : null}
-        {inputDestinationFirst ? (
+        ) : null} */}
+        {findWordInputDestination && searchInputDestinationResults.length > 0 ? (
+          <FlatList
+            data={searchInputDestinationResults}
+            keyExtractor={(item, index) => item.place_id || index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <Text style={styles.itemText}>{item.description}</Text>
+              </View>
+            )}
+            numColumns={1}
+          />
+        ) : (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="always"
+            data={locationListInputDestination}
+            removeClippedSubviews={true}
+            renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
+            keyExtractor={(item, index) => index.toString()}
+            onEndReachedThreshold={0.5}
+            numColumns={1}
+            style={styles.locationList}
+          />
+        )}
+        {/* {inputDestinationFirst ? (
           <FlatList
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="always"
@@ -412,7 +577,7 @@ const SearchScreen = (props) => {
             numColumns={2}
             style={styles.locationList}
           />
-        ) : null}
+        ) : null} */}
       </>
     );
   };
