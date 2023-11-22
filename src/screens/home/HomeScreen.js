@@ -5,10 +5,10 @@ import Geolocation from '@react-native-community/geolocation';
 import { check, openSettings, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import FastImage from 'react-native-fast-image';
 import { NavigationContext, useNavigation } from '@react-navigation/native';
-import { PermissionsLocation, searchType } from '~/constant/content';
+import { PermissionsLocation, currentLocation, searchType } from '~/constant/content';
 import images from '~/themes/images';
 import { responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
-import { historyBookData } from '~/data';
+import { envDemo, historyBookData } from '~/data';
 import SCREENS from '~/constant/screens';
 import SplashScreen from 'react-native-splash-screen';
 import HomeModal from './HomeModal';
@@ -18,6 +18,7 @@ import Colors from '~/themes/colors';
 const HomeScreen = () => {
   const navigation = React.useContext(NavigationContext);
   const [currentPosition, setCurrentPosition] = useState(null);
+  console.log('Test 3 currentPosition: ', JSON.stringify(currentPosition));
   const [currentLatitude, setCurrentLatitude] = useState(defaultLocation?.latitude);
   const [currentLongitude, setCurrentLongitude] = useState(defaultLocation?.longitude);
   const [historyVisible, toggleHistoryVisible] = useToggleState(false);
@@ -103,7 +104,8 @@ const HomeScreen = () => {
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition((info) => {
       console.log('Test vi tri: ', info);
-      setCurrentPosition(info);
+      const location = envDemo ? currentLocation : info;
+      setCurrentPosition(location);
     });
   };
 

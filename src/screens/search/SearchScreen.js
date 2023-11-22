@@ -2,9 +2,8 @@ import { StyleSheet, Text, View, BackHandler, SafeAreaView, ScrollView, RefreshC
 import React, { useEffect, useState } from 'react';
 import Header from '~/components/Header';
 import { NavigationContext, useNavigation } from '@react-navigation/native';
-import { GOOGLE_MAPS_APIKEY, isEmptyArr, removeAccents, responsiveFontSizeOS, responsiveSizeOS, SCREEN_WIDTH } from '~/helper/GeneralMain';
+import { GOOGLE_MAPS_APIKEY, isEmptyArr, isEmptyObj, removeAccents, responsiveFontSizeOS, responsiveSizeOS, SCREEN_WIDTH } from '~/helper/GeneralMain';
 import FastImage from 'react-native-fast-image';
-import getDirections from 'react-native-google-maps-directions';
 import { Footer } from '~/components/Footer';
 import { locationData } from '~/data';
 import LayoutView from '~/components/LayoutView';
@@ -15,37 +14,29 @@ import Colors from '~/themes/colors';
 
 const SearchScreen = (props) => {
   const { currentPosition } = props?.route?.params ?? {};
-  console.log('Test now: ', JSON.stringify(currentPosition));
   const navigation = React.useContext(NavigationContext);
 
-  const [findWord, setFindWord] = useState(null);
+  const [findWordDestination, setFindWordDestination] = useState(null);
   const [findWordInputSource, setFindWordInputSource] = useState(null);
   const [findWordInputDestination, setFindWordInputDestination] = useState(null);
   const [searchCurrentResults, setSearchCurrentResults] = useState([]);
   const [searchInputSourceResults, setSearchInputSourceResults] = useState([]);
   const [searchInputDestinationResults, setSearchInputDestinationResults] = useState([]);
-  const [searchInputType, setSearchInputType] = useState(null);
 
   const [locationList, setLocationList] = useState(locationData ?? []);
   const [locationListInputSource, setLocationListInputSource] = useState(locationData ?? []);
   const [locationListInputDestination, setLocationListInputDestination] = useState(locationData ?? []);
   const [locationType, setLocationType] = useState(searchType.CURRENT);
   const [currentSource, setCurrentSource] = useState(currentPosition);
-  // const [currentSourceName, setCurrentSourceName] = useState(null);
-  // const [currentSourceFirst, setCurrentSourceFirst] = useState(null);
-  // const [currentSourceclear, setCurrentSourceClear] = useState(null);
+  console.log('Test 5 currentSource: ', JSON.stringify(currentSource));
   const [currentDestination, setCurrentDestination] = useState(null);
-  // const [currentDestinationName, setCurrentDestinationName] = useState(null);
-  // const [currentDestinationFirst, setCurrentDestinationFirst] = useState(null);
-  // const [currentDestinationClear, setCurrentDestinationClear] = useState(null);
+  const [currentDestinationFocus, setCurrentDestinationFocus] = useState(true);
   const [inputSource, setInputSource] = useState(null);
-  // const [inputSourceName, setInputSourceName] = useState(null);
-  // const [inputSourceFirst, setInputSourceFirst] = useState(null);
-  // const [InputSourceclear, setInputSourceClear] = useState(null);
+  console.log('Test 5 inputSource: ', JSON.stringify(inputSource));
+  const [inputSourceFocus, setInputSourceFocus] = useState(true);
   const [inputDestination, setInputDestination] = useState(null);
-  // const [inputDestinationName, setInputDestinationName] = useState(null);
-  // const [inputDestinationFirst, setInputDestinationFirst] = useState(null);
-  // const [inputDestinationClear, setInputDestinationClear] = useState(null);
+  console.log('Test 5 inputDestination: ', JSON.stringify(inputSource));
+  const [inputDestinationFocus, setInputDestinationFocus] = useState(false);
   const [isSubmit, setCheckSubmit] = useState(false);
 
   // Gọi hàm yêu cầu quyền khi component được mounted
@@ -53,11 +44,12 @@ const SearchScreen = (props) => {
     requestLocationPermission();
   }, []);
 
-  /**
-   * Vấn đề: locationType ?
-   * currentSource ?
-   * currentDestination ?
-   */
+  useEffect(() => {
+    if (!isEmptyObj(currentPosition)) {
+      setCurrentSource(currentPosition);
+    }
+  }, [currentPosition]);
+
   useEffect(() => {
     if (locationType === searchType.CURRENT) {
       currentSource && currentDestination ? setCheckSubmit(true) : setCheckSubmit(false);
@@ -84,7 +76,7 @@ const SearchScreen = (props) => {
   const handleClear = (type) => () => {
     switch (type) {
       case paramType.currentDestination:
-        setFindWord(null);
+        setFindWordDestination(null);
         setLocationList(locationData);
         break;
       case paramType.inputSource:
@@ -111,7 +103,7 @@ const SearchScreen = (props) => {
     switch (type) {
       case paramType.currentDestination:
         setLocationList(filterData);
-        setFindWord(text);
+        setFindWordDestination(text);
         break;
       case paramType.inputSource:
         setLocationListInputSource(filterData);
@@ -133,23 +125,19 @@ const SearchScreen = (props) => {
    * @returns
    */
   const handleBooking = (item, type) => () => {
+    console.log('Test 10 item map: ', JSON.stringify(item));
     switch (type) {
       case paramType.currentSource:
-        // setCurrentSourceName(item?.text);
-        setCurrentSource(item);
         break;
       case paramType.currentDestination:
-        // setCurrentDestinationName(item?.text);
-        setFindWord(item?.text);
+        setFindWordDestination(item?.text);
         setCurrentDestination(item);
         break;
       case paramType.inputSource:
-        // setInputSourceName(item?.text);
         setFindWordInputSource(item?.text);
         setInputSource(item);
         break;
       case paramType.inputDestination:
-        // setInputDestinationName(item?.text);
         setFindWordInputDestination(item?.text);
         setInputDestination(item);
         break;
@@ -162,7 +150,27 @@ const SearchScreen = (props) => {
    * Mở giao diện booking trên map
    */
   const handleSearch = () => {
-    navigation.navigate(SCREENS.BOOKING_SCREEN, { searchLocation: { locationType, currentSource, currentDestination, inputSource, inputDestination } });
+    let directionData = {};
+    switch (locationType) {
+      case searchType.CURRENT:
+        directionData = {
+          fromLocation: currentSource?.coords,
+          toLocation: currentDestination?.location,
+        };
+        break;
+      case searchType.INPUT:
+        directionData = {
+          fromLocation: inputSource?.location,
+          toLocation: inputDestination?.location,
+          origin: inputSource?.desc,
+          destination: inputDestination?.desc,
+        };
+        break;
+      default:
+        return;
+    }
+
+    navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN, { directionData });
   };
 
   /**
@@ -227,20 +235,15 @@ const SearchScreen = (props) => {
   const handleInputFocus = (key) => () => {
     switch (key) {
       case paramType.currentSource:
-        // setCurrentSourceClear(true);
-        // setCurrentSourceFirst(true);
         break;
       case paramType.currentDestination:
-        // setCurrentDestinationClear(true);
-        // setCurrentDestinationFirst(true);
+        setCurrentDestinationFocus(true);
         break;
       case paramType.inputSource:
-        // setInputSourceClear(true);
-        // setInputSourceFirst(true);
+        setInputSourceFocus(true);
         break;
       case paramType.inputDestination:
-        // setInputDestinationClear(true);
-        // setInputDestinationFirst(true);
+        setInputDestinationFocus(true);
         break;
       default:
         break;
@@ -255,20 +258,15 @@ const SearchScreen = (props) => {
   const handleInputBlur = (key) => () => {
     switch (key) {
       case paramType.currentSource:
-        // setCurrentSourceClear(false);
-        // setCurrentSourceFirst(false);
         break;
       case paramType.currentDestination:
-        // setCurrentDestinationClear(false);
-        // setCurrentDestinationFirst(false);
+        setCurrentDestinationFocus(false);
         break;
       case paramType.inputSource:
-        // setInputSourceClear(false);
-        // setInputSourceFirst(false);
+        setInputSourceFocus(false);
         break;
       case paramType.inputDestination:
-        // setInputDestinationClear(false);
-        // setInputDestinationFirst(false);
+        setInputDestinationFocus(false);
         break;
       default:
         break;
@@ -280,9 +278,6 @@ const SearchScreen = (props) => {
    */
   const requestLocationPermission = async () => {
     if (Platform.OS === 'ios') {
-      // Quyền truy cập vị trí trên iOS sẽ được yêu cầu thông qua plist
-      // Và bạn có thể sử dụng react-native-permissions để yêu cầu tại đây
-      console.log('iOS location permission request would go here');
     } else {
       try {
         const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
@@ -309,11 +304,11 @@ const SearchScreen = (props) => {
    */
   const handleGoogleSearch = async (text, type) => {
     let textResult;
-    setSearchInputType(type);
     switch (type) {
       case paramType.currentDestination:
-        setFindWord(text);
+        setFindWordDestination(text);
         textResult = await getApiPlaceMap(text);
+        console.log('Test textResult map google: ', JSON.stringify(textResult));
         setSearchCurrentResults(textResult);
         textResult?.length === 0 ? handleFindLocation(text, type) : null;
         break;
@@ -321,33 +316,17 @@ const SearchScreen = (props) => {
         setFindWordInputSource(text);
         textResult = await getApiPlaceMap(text);
         setSearchInputSourceResults(textResult);
-        handleFindLocation(text, type);
+        textResult?.length === 0 ? handleFindLocation(text, type) : null;
         break;
       case paramType.inputDestination:
         setFindWordInputDestination(text);
         textResult = await getApiPlaceMap(text);
         setSearchInputDestinationResults(textResult);
-        handleFindLocation(text, type);
+        textResult?.length === 0 ? handleFindLocation(text, type) : null;
         break;
       default:
         break;
     }
-    // setFindWordInputSource(text);
-    // setSearchInputType(type);
-    // if (text.length > 0) {
-    //   try {
-    //     const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_APIKEY}&language=vi`;
-    //     const response = await fetch(url);
-    //     const json = await response.json();
-    //     setSearchResults(json.predictions);
-    //     // Có thể bạn muốn làm gì đó với kết quả tìm kiếm, ví dụ hiển thị trong một FlatList
-    //     console.log('Test search list: ', JSON.stringify(json));
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // } else {
-    //   setSearchResults([]);
-    // }
   };
 
   const getApiPlaceMap = async (text) => {
@@ -357,35 +336,13 @@ const SearchScreen = (props) => {
         const response = await fetch(url);
         const json = await response.json();
         return json.predictions;
-        // setSearchResults(json.predictions);
-        // Có thể bạn muốn làm gì đó với kết quả tìm kiếm, ví dụ hiển thị trong một FlatList
-        console.log('Test search list: ', JSON.stringify(json));
       } catch (error) {
         console.error(error);
       }
     } else {
       return [];
-      // setSearchResults([]);
     }
   };
-
-  // useEffect(() => {
-  //   if (findWord && isEmptyArr(searchCurrentResults) && searchInputType === paramType.currentDestination) {
-  //     handleFindLocation(findWord, searchInputType);
-  //   }
-  // }, [findWord, searchInputType, searchCurrentResults]);
-
-  // useEffect(() => {
-  //   if (findWordInputSource && isEmptyArr(searchInputSourceResults) && searchInputType === paramType.inputSource) {
-  //     handleFindLocation(findWordInputSource, searchInputType);
-  //   }
-  // }, [findWordInputSource, searchInputType, searchInputSourceResults]);
-
-  // useEffect(() => {
-  //   if (findWordInputDestination && isEmptyArr(searchInputDestinationResults) && searchInputType === paramType.inputDestination) {
-  //     handleFindLocation(findWordInputDestination, searchInputType);
-  //   }
-  // }, [findWordInputDestination, searchInputType, searchInputDestinationResults]);
 
   const handlePlaceDetails = async (placeId) => {
     try {
@@ -396,7 +353,7 @@ const SearchScreen = (props) => {
       if (json.status === 'OK') {
         const location = json.result.geometry.location;
         console.log('Location details: ', location);
-        // Tại đây bạn có thể làm gì đó với thông tin vị trí, ví dụ lưu trữ nó hoặc hiển thị trên bản đồ
+        return location;
       } else {
         console.error('Error fetching place details:', json.status);
       }
@@ -405,9 +362,37 @@ const SearchScreen = (props) => {
     }
   };
 
-  // console.log('Test searchResults: ', JSON.stringify(searchResults));
+  const handlePlaceId = (item, type) => async () => {
+    const location = await handlePlaceDetails(item.place_id);
+    const finalObject = {
+      text: item.structured_formatting.main_text,
+      desc: item.description,
+      location: {
+        latitude: location.lat,
+        longitude: location.lng,
+      },
+      country: item.terms[item.terms.length - 1].value,
+    };
+    console.log('Test 100 finalObject: ', JSON.stringify(finalObject));
+    switch (type) {
+      case paramType.currentDestination:
+        setFindWordDestination(finalObject?.text);
+        setCurrentDestination(finalObject);
+        break;
+      case paramType.inputSource:
+        setFindWordInputSource(finalObject?.text);
+        setInputSource(finalObject);
+        break;
+      case paramType.inputDestination:
+        setFindWordInputDestination(finalObject?.text);
+        setInputDestination(finalObject);
+        break;
+      default:
+        break;
+    }
+  };
 
-  console.log('Test locationList: ', JSON.stringify(locationList));
+  console.log('Test currentDestinationFocus: ', currentDestinationFocus);
 
   /**
    * Flow cho vị trí hiện tại
@@ -421,8 +406,9 @@ const SearchScreen = (props) => {
             <FastImage source={images.icSearch} style={styles.imgSearch} resizeMode="contain" />
           </TouchableOpacity>
           <TextInput
-            value={findWord}
-            // onChangeText={handleGoogleSearch}
+            value={findWordDestination}
+            onFocus={handleInputFocus(paramType.currentDestination)}
+            onBlur={handleInputBlur(paramType.currentDestination)}
             onChangeText={(text) => handleGoogleSearch(text, paramType.currentDestination)}
             style={styles.viewInputText}
             placeholder="Tìm kiếm điểm đến"
@@ -433,33 +419,39 @@ const SearchScreen = (props) => {
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
         </View>
-        {findWord && searchCurrentResults.length > 0 ? (
-          <FlatList
-            data={searchCurrentResults}
-            keyExtractor={(item, index) => item.place_id || index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.itemText}>{item.description}</Text>
-              </View>
-            )}
-            numColumns={1}
-          />
-        ) : (
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-            data={locationList}
-            removeClippedSubviews={true}
-            renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
-            keyExtractor={(item, index) => index.toString()}
-            onEndReachedThreshold={0.5}
-            numColumns={1}
-            style={styles.locationList}
-          />
-        )}
+        {currentDestinationFocus ? (
+          findWordDestination && searchCurrentResults.length > 0 ? (
+            <FlatList
+              data={searchCurrentResults}
+              keyExtractor={(item, index) => item.place_id || index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.listItem}>
+                  <TouchableOpacity onPress={handlePlaceId(item, paramType.currentDestination)}>
+                    <Text style={styles.itemText}>{item.description}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              numColumns={1}
+            />
+          ) : (
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="always"
+              data={locationList}
+              removeClippedSubviews={true}
+              renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
+              keyExtractor={(item, index) => index.toString()}
+              onEndReachedThreshold={0.5}
+              numColumns={1}
+              style={styles.locationList}
+            />
+          )
+        ) : null}
       </>
     );
   };
+
+  console.log('Test findWordInputDestination: ', findWordInputDestination);
 
   /**
    * Luồng cho vị trí A, B
@@ -504,80 +496,58 @@ const SearchScreen = (props) => {
             <FastImage source={images.iconClose} style={styles.imgClose} resizeMode="contain" />
           </TouchableOpacity>
         </View>
-        {findWordInputSource && searchInputSourceResults.length > 0 ? (
-          <FlatList
-            data={searchInputSourceResults}
-            keyExtractor={(item, index) => item.place_id || index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.itemText}>{item.description}</Text>
-              </View>
-            )}
-            numColumns={1}
-          />
-        ) : (
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-            data={locationListInputSource}
-            removeClippedSubviews={true}
-            renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
-            keyExtractor={(item, index) => index.toString()}
-            onEndReachedThreshold={0.5}
-            numColumns={1}
-            style={styles.locationList}
-          />
-        )}
-        {/* {inputSourceFirst ? (
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-            data={locationListInputSource}
-            removeClippedSubviews={true}
-            renderItem={({ item, index }) => viewItemLocation(item, paramType.inputSource)}
-            keyExtractor={(item, index) => index.toString()}
-            onEndReachedThreshold={0.5}
-            numColumns={2}
-            style={styles.locationList}
-          />
-        ) : null} */}
-        {findWordInputDestination && searchInputDestinationResults.length > 0 ? (
-          <FlatList
-            data={searchInputDestinationResults}
-            keyExtractor={(item, index) => item.place_id || index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.itemText}>{item.description}</Text>
-              </View>
-            )}
-            numColumns={1}
-          />
-        ) : (
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-            data={locationListInputDestination}
-            removeClippedSubviews={true}
-            renderItem={({ item, index }) => viewItemLocation(item, paramType.currentDestination)}
-            keyExtractor={(item, index) => index.toString()}
-            onEndReachedThreshold={0.5}
-            numColumns={1}
-            style={styles.locationList}
-          />
-        )}
-        {/* {inputDestinationFirst ? (
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-            data={locationListInputDestination}
-            removeClippedSubviews={true}
-            renderItem={({ item, index }) => viewItemLocation(item, paramType.inputDestination)}
-            keyExtractor={(item, index) => index.toString()}
-            onEndReachedThreshold={0.5}
-            numColumns={2}
-            style={styles.locationList}
-          />
-        ) : null} */}
+        {inputSourceFocus ? (
+          findWordInputSource && searchInputSourceResults.length > 0 ? (
+            <FlatList
+              data={searchInputSourceResults}
+              keyExtractor={(item, index) => item.place_id || index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={handlePlaceId(item, paramType.inputSource)}>
+                  <Text style={styles.itemText}>{item.description}</Text>
+                </TouchableOpacity>
+              )}
+              numColumns={1}
+            />
+          ) : (
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="always"
+              data={locationListInputSource}
+              removeClippedSubviews={true}
+              renderItem={({ item, index }) => viewItemLocation(item, paramType.inputSource)}
+              keyExtractor={(item, index) => index.toString()}
+              onEndReachedThreshold={0.5}
+              numColumns={1}
+              style={styles.locationList}
+            />
+          )
+        ) : null}
+        {inputDestinationFocus ? (
+          findWordInputDestination && searchInputDestinationResults.length > 0 ? (
+            <FlatList
+              data={searchInputDestinationResults}
+              keyExtractor={(item, index) => item.place_id || index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={handlePlaceId(item, paramType.inputDestination)}>
+                  <Text style={styles.itemText}>{item.description}</Text>
+                </TouchableOpacity>
+              )}
+              numColumns={1}
+            />
+          ) : (
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="always"
+              data={locationListInputDestination}
+              removeClippedSubviews={true}
+              renderItem={({ item, index }) => viewItemLocation(item, paramType.inputDestination)}
+              keyExtractor={(item, index) => index.toString()}
+              onEndReachedThreshold={0.5}
+              numColumns={1}
+              style={styles.locationList}
+            />
+          )
+        ) : null}
       </>
     );
   };
@@ -724,7 +694,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsiveSizeOS(16),
   },
   btnSelectLocationEnable: {
-    backgroundColor: 'rgb(138,43,226)',
+    backgroundColor: Colors.btnSubmit,
   },
   txtSelectService: {
     fontSize: responsiveFontSizeOS(16),
@@ -736,7 +706,7 @@ const styles = StyleSheet.create({
   },
   viewInputButton: {
     bottom: 0,
-    backgroundColor: '#610899',
+    backgroundColor: Colors.btnSubmit,
     borderRadius: responsiveSizeOS(15),
     justifyContent: 'center',
     alignItems: 'center',
@@ -747,7 +717,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveSizeOS(10),
   },
   viewInputButton_Disabled: {
-    backgroundColor: '#7A0BC0',
+    backgroundColor: Colors.bgGrayD,
   },
   txtSubmit: {
     fontSize: responsiveFontSizeOS(16),

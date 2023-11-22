@@ -2,7 +2,7 @@ import { Alert, Platform, StyleSheet, Text, View, BackHandler } from 'react-nati
 import React, { useRef, useState, useEffect } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
-import { PermissionsLocation, defaultLocation } from '~/constant/content';
+import { PermissionsLocation } from '~/constant/content';
 import { GOOGLE_MAPS_APIKEY, LATITUDE_DELTA, LONGITUDE_DELTA, screenHeight, screenWidth } from '~/helper/GeneralMain';
 import MapViewDirections from 'react-native-maps-directions';
 import { check, openSettings, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
@@ -13,11 +13,9 @@ const OrderBookingScreen = (props) => {
   console.log('Test directionData: ', JSON.stringify(directionData));
   const navigation = React.useContext(NavigationContext);
   const [currentPosition, setCurrentPosition] = useState(null);
-  const [currentLatitude, setCurrentLatitude] = useState(defaultLocation?.latitude);
-  const [currentLongitude, setCurrentLongitude] = useState(defaultLocation?.longitude);
+  const [currentLatitude, setCurrentLatitude] = useState(directionData?.fromLocation?.latitude);
+  const [currentLongitude, setCurrentLongitude] = useState(directionData?.fromLocation?.longitude);
   const [coordinates, setCoordinates] = useState([]);
-
-  console.log('Test coordinates: ', JSON.stringify(coordinates));
 
   const mapView = useRef(null);
 

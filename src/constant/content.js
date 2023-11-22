@@ -20,6 +20,24 @@ export const defaultLocation = {
   longitude: 106.698471,
 };
 
+export const currentLocation = {
+  coords: {
+    accuracy: 10,
+    altitude: 60,
+    heading: 56,
+    latitude: 10.8023374,
+    longitude: 106.6118853,
+    speed: 0,
+  },
+  extras: {
+    maxCn0: 0,
+    meanCn0: 0,
+    satellites: 0,
+  },
+  mocked: false,
+  timestamp: 1700514171000,
+};
+
 export const VALIDATE = {
   DONE: 'DONE',
 };

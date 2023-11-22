@@ -1,5 +1,5 @@
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '~/components/Layout';
 import FastImage from 'react-native-fast-image';
 import Colors from '~/themes/colors';
@@ -7,6 +7,8 @@ import { formatAccountNumber, responsiveFontSizeOS, responsiveSizeOS } from '~/h
 import images from '~/themes/images';
 import { NavigationContext } from '@react-navigation/native';
 import SCREENS from '~/constant/screens';
+import axios from 'axios';
+import { SERVER_URL } from '~/configs/api.config';
 
 const RegisterScreen = () => {
   const navigation = React.useContext(NavigationContext);
@@ -16,6 +18,11 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState(null);
   const [rePassword, setRePassword] = useState(null);
   const [privacyPolicyOption, setPrivacyPolicyOption] = useState(false);
+  const [isSubmit, setCheckSubmit] = useState(true);
+
+  useEffect(() => {
+    fullName && phoneNumber && email && password && rePassword && password === rePassword && privacyPolicyOption ? setCheckSubmit(true) : setCheckSubmit(false);
+  }, [fullName, phoneNumber, email, password, rePassword, privacyPolicyOption]);
 
   const handleSetData = (data, key) => {
     switch (key) {
@@ -27,7 +34,7 @@ const RegisterScreen = () => {
         setPhoneNumber(iPhoneNumber);
         break;
       case paramRegister.email:
-        setEmail(email);
+        setEmail(data);
         break;
       case paramRegister.password:
         setPassword(data);
@@ -44,6 +51,26 @@ const RegisterScreen = () => {
     setPrivacyPolicyOption(!privacyPolicyOption);
   };
 
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/v1/customers/register`, {
+        phoneNo: phoneNumber,
+        password: password,
+        fullname: fullName,
+        email: email,
+      });
+
+      if (response.status === 200) {
+        navigation.navigate(SCREENS.HOME);
+      } else {
+        Alert.alert('Thông báo', 'Đăng ký thất bại. Vui lòng kiểm tra lại.');
+      }
+    } catch (error) {
+      console.log('Error during registration: ', error);
+      Alert.alert('Thông báo', 'Lỗi kết nối mạng hoặc máy chủ.');
+    }
+  };
+
   return (
     <Layout style={styles.viewContainer}>
       <SafeAreaView style={styles.mainContainer}>
@@ -57,7 +84,7 @@ const RegisterScreen = () => {
             <TextInput value={phoneNumber} onChangeText={(e) => handleSetData(e, paramRegister.phoneNumber)} style={styles.viewInputText} placeholder="Số điện thoại" autoCorrect={false} maxLength={10} allowFontScaling={false} keyboardType="number-pad" />
           </View>
           <View style={styles.viewInput}>
-            <TextInput value={email} onChangeText={(e) => handleSetData(e, paramRegister.email)} style={styles.viewInputText} placeholder="Email" autoCorrect={false} maxLength={10} allowFontScaling={false} keyboardType="email-address" />
+            <TextInput value={email} onChangeText={(e) => handleSetData(e, paramRegister.email)} style={styles.viewInputText} placeholder="Email" autoCorrect={false} allowFontScaling={false} keyboardType="email-address" />
           </View>
           <View style={styles.viewInput}>
             <TextInput value={password} onChangeText={(e) => handleSetData(e, paramRegister.password)} secureTextEntry={true} style={styles.viewInputText} placeholder="Mật khẩu" autoCorrect={false} maxLength={20} allowFontScaling={false} keyboardType="number-pad" />
@@ -71,7 +98,7 @@ const RegisterScreen = () => {
             </TouchableOpacity>
             <Text style={styles.txtSelectOption}>{`Bằng việc bạn chọn tạo cửa hàng, bạn đồng ý với Điều khoản sử dụng của App.`}</Text>
           </View>
-          <TouchableOpacity style={styles.btnSubmit}>
+          <TouchableOpacity style={[[styles.btnSubmit, !isSubmit ? styles.viewInputButton_Disabled : null]]} disabled={!isSubmit} onPress={handleRegister}>
             <Text style={styles.txtSubmit}>Đăng ký</Text>
           </TouchableOpacity>
           <View style={styles.viewQuestion}>
@@ -110,17 +137,17 @@ const styles = StyleSheet.create({
   icLogoApp: {
     width: responsiveSizeOS(260),
     height: responsiveSizeOS(144),
-    marginTop: responsiveSizeOS(50),
+    marginTop: responsiveSizeOS(0),
   },
   txtTitle: {
     fontSize: responsiveFontSizeOS(32),
     color: Colors.txtBlack,
     fontWeight: 'bold',
-    marginTop: responsiveSizeOS(5),
+    // marginTop: responsiveSizeOS(5),
   },
   viewContent: {
     width: '100%',
-    marginTop: responsiveSizeOS(24),
+    marginTop: responsiveSizeOS(12),
   },
   viewText: {
     width: '100%',
@@ -189,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    marginTop: responsiveSizeOS(20),
+    marginTop: responsiveSizeOS(12),
   },
   txtQuestion: {
     fontSize: responsiveFontSizeOS(16),
@@ -199,5 +226,8 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSizeOS(16),
     color: Colors.txtBlue,
     fontWeight: 'bold',
+  },
+  viewInputButton_Disabled: {
+    backgroundColor: Colors.bgGrayD,
   },
 });

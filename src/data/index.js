@@ -1,3 +1,5 @@
+export const envDemo = true;
+
 export const locationData = [
   {
     id: 1,

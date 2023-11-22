@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import SplashScreen from 'react-native-splash-screen';
 import { Layout } from '~/components/Layout';
@@ -8,15 +8,40 @@ import images from '~/themes/images';
 import { formatAccountNumber, responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
 import SCREENS from '~/constant/screens';
 import { NavigationContext } from '@react-navigation/native';
+import axios from 'axios';
+import { SERVER_URL } from '~/configs/api.config';
 
 const LoginScreen = () => {
   const navigation = React.useContext(NavigationContext);
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [password, setPassword] = useState(null);
+  const [isSubmit, setCheckSubmit] = useState(false);
 
   useEffect(() => {
     SplashScreen.hide();
   }, []);
+
+  useEffect(() => {
+    phoneNumber && password ? setCheckSubmit(true) : setCheckSubmit(false);
+  }, [phoneNumber, password]);
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/v1/customers/login`, {
+        phoneNo: phoneNumber,
+        password: password,
+      });
+      console.log('Test 2 response: ', JSON.stringify(response));
+      if (response.status === 200) {
+        navigation.navigate(SCREENS.HOME);
+      } else {
+        Alert.alert('Thông báo', 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
+      }
+    } catch (error) {
+      console.log('Test 2 error: ', error);
+      Alert.alert('Thông báo', 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
+    }
+  };
 
   const handleSetData = (data, key) => {
     switch (key) {
@@ -50,7 +75,7 @@ const LoginScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
-        <TouchableOpacity style={styles.btnSubmit} onPress={() => navigation.navigate(SCREENS.HOME)}>
+        <TouchableOpacity style={[[styles.btnSubmit, !isSubmit ? styles.viewInputButton_Disabled : null]]} disabled={isSubmit ? false : true} onPress={handleLogin}>
           <Text style={styles.txtSubmit}>Đăng nhập</Text>
         </TouchableOpacity>
         <View style={styles.viewLoginOption}>
@@ -89,11 +114,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: responsiveSizeOS(32),
+    paddingBottom: responsiveSizeOS(100),
   },
   icLogoApp: {
     width: responsiveSizeOS(260),
     height: responsiveSizeOS(144),
-    marginTop: responsiveSizeOS(100),
+    marginTop: responsiveSizeOS(20),
+  },
+  viewInputButton_Disabled: {
+    backgroundColor: Colors.bgGrayD,
   },
   txtTitle: {
     fontSize: responsiveFontSizeOS(32),
