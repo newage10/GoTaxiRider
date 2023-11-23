@@ -10,6 +10,7 @@ import SCREENS from '~/constant/screens';
 import { NavigationContext } from '@react-navigation/native';
 import axios from 'axios';
 import { SERVER_URL } from '~/configs/api.config';
+import { storeToken } from '~/configs/storageUtils';
 
 const LoginScreen = () => {
   const navigation = React.useContext(NavigationContext);
@@ -32,7 +33,12 @@ const LoginScreen = () => {
         password: password,
       });
       console.log('Test 2 response: ', JSON.stringify(response));
-      if (response.status === 200) {
+      const token = response.data.token;
+      if (response.status === 200 && token) {
+        // Lưu token vào AsyncStorage
+        await storeToken(token);
+
+        // Chuyển hướng sau khi đăng nhập thành công
         navigation.navigate(SCREENS.HOME);
       } else {
         Alert.alert('Thông báo', 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');

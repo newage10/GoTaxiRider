@@ -9,6 +9,7 @@ import { NavigationContext } from '@react-navigation/native';
 import SCREENS from '~/constant/screens';
 import axios from 'axios';
 import { SERVER_URL } from '~/configs/api.config';
+import { storeToken } from '~/configs/storageUtils';
 
 const RegisterScreen = () => {
   const navigation = React.useContext(NavigationContext);
@@ -59,8 +60,12 @@ const RegisterScreen = () => {
         fullname: fullName,
         email: email,
       });
+      const token = response.data.token;
+      if (response.status === 200 && token) {
+        // Lưu token vào AsyncStorage
+        await storeToken(token);
 
-      if (response.status === 200) {
+        // Chuyển hướng sau khi đăng nhập thành công
         navigation.navigate(SCREENS.HOME);
       } else {
         Alert.alert('Thông báo', 'Đăng ký thất bại. Vui lòng kiểm tra lại.');

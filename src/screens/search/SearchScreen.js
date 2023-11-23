@@ -162,8 +162,6 @@ const SearchScreen = (props) => {
         directionData = {
           fromLocation: inputSource?.location,
           toLocation: inputDestination?.location,
-          origin: inputSource?.desc,
-          destination: inputDestination?.desc,
         };
         break;
       default:

@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Platform, FlatList, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
-import { formatMoneyNumber, responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
+import { formatMoneyNumber, isEmptyObj, responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
 import { HeaderPopup } from '~/components/HeaderPopup';
 import FastImage from 'react-native-fast-image';
 import images from '~/themes/images';
 import Fonts from '~/themes/Fonts';
+import Colors from '~/themes/colors';
 
 const DriverReceiverModal = (props) => {
   const [pointSelect, setpointSelect] = useState(null);
-  const { modalVisible, toggleModalVisible, modalTitle, handleBooking } = props ?? {};
+  const { modalVisible, toggleModalVisible, modalTitle, handleBooking, bookingData } = props ?? {};
+  const [vehicleOptions, setVehicleOptions] = useState([]);
+
+  useEffect(() => {
+    if (!isEmptyObj(bookingData)) {
+      const vehicleOptions = Object.keys(bookingData.fare).map((key) => {
+        return {
+          type: key,
+          name: vehicleNames[key],
+          distance: bookingData?.distance?.distance?.text,
+          duration: bookingData?.distance?.duration?.text,
+          price: bookingData.fare[key],
+        };
+      });
+      setVehicleOptions(vehicleOptions);
+    }
+  }, [bookingData]);
 
   const handleClose = () => {
     toggleModalVisible();
@@ -24,19 +41,28 @@ const DriverReceiverModal = (props) => {
     handleClose();
   };
 
-  const viewItem = (image, title, time, txtType, money) => {
+  const viewItem = (item, index) => {
+    const { name, distance, duration, price } = item ?? {};
+    const imageSource = {
+      bike: images.icMotorcycle,
+      'bike-plus': images.icMotorcyclePlus,
+      car: images.icCar,
+      'car-plus': images.icCarPlus,
+      'car-7seat': images.icCar7Seat,
+    };
+
     return (
       <>
-        <TouchableOpacity style={[styles.viewItem, pointSelect === title ? styles.viewItemEnable : null]} onPress={handleSelect(title)}>
+        <TouchableOpacity key={index} style={[styles.viewItem, pointSelect === name ? styles.viewItemEnable : null]} onPress={handleSelect(name)}>
           <View style={styles.viewItemLeft}>
-            <FastImage source={image} style={styles.icItem} resizeMode="contain" />
+            {/* <FastImage source={imageSource[name]} style={styles.icItem} resizeMode="contain" /> */}
             <View style={styles.viewItemContent}>
-              <Text style={styles.txtTitle}>{title}</Text>
-              <Text style={styles.txtDesc}>{`${time} - ${txtType}`}</Text>
+              <Text style={styles.txtTitle}>{name}</Text>
+              <Text style={styles.txtDesc}>{`${distance} - ${duration}`}</Text>
             </View>
           </View>
           <View style={styles.viewItemRight}>
-            <Text style={styles.txtTitle}>{`${formatMoneyNumber(money)} đ`}</Text>
+            <Text style={styles.txtTitle}>{`${formatMoneyNumber(price)} đ`}</Text>
           </View>
         </TouchableOpacity>
       </>
@@ -47,11 +73,7 @@ const DriverReceiverModal = (props) => {
     <Modal propagateSwipe animationIn="slideInUp" animationOut="slideOutDown" isVisible={modalVisible} onBackdropPress={handleClose} style={styles.containerModal}>
       <View style={[styles.modalView, { marginTop: responsiveSizeOS(Platform.OS === 'ios' ? 400 : 350) }]}>
         <HeaderPopup onClose={handleClose} title={modalTitle} styleTitle={styles.fontTitle} styleButton={styles.btnClose} />
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {viewItem(images.icMotorcycle, 'Xe 2 bánh', '5-10 phút', '1 chỗ', 40000)}
-          {viewItem(images.icCar, 'Xe 4 bánh', '15-30 phút', '4 chỗ', 100000)}
-          {viewItem(images.icCarXL, 'Xe 4 bánh XL', '30-60 phút', '6 chỗ', 200000)}
-        </ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>{vehicleOptions.map((item, index) => viewItem(item, index))}</ScrollView>
         <TouchableOpacity style={styles.viewSubmit} onPress={hanldeSubmit}>
           <Text style={styles.txtSubmit}>Đặt xe</Text>
         </TouchableOpacity>
@@ -61,6 +83,14 @@ const DriverReceiverModal = (props) => {
 };
 
 export default DriverReceiverModal;
+
+const vehicleNames = {
+  bike: 'Xe số',
+  'bike-plus': 'Xe tay ga',
+  car: 'Ô tô',
+  'car-plus': 'Ô tô cao cấp',
+  'car-7seat': 'Ô tô 7 chỗ',
+};
 
 const styles = StyleSheet.create({
   containerModal: {
@@ -132,7 +162,7 @@ const styles = StyleSheet.create({
   viewSubmit: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#610899',
+    backgroundColor: Colors.btnSubmit,
     borderRadius: responsiveSizeOS(20),
     height: responsiveSizeOS(48),
     width: '100%',
