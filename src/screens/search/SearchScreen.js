@@ -449,8 +449,6 @@ const SearchScreen = (props) => {
     );
   };
 
-  console.log('Test findWordInputDestination: ', findWordInputDestination);
-
   /**
    * Luồng cho vị trí A, B
    * @returns

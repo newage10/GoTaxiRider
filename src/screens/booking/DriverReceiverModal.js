@@ -14,7 +14,7 @@ const DriverReceiverModal = (props) => {
   const [vehicleOptions, setVehicleOptions] = useState([]);
 
   useEffect(() => {
-    if (!isEmptyObj(bookingData)) {
+    if (!isEmptyObj(bookingData) && !isEmptyObj(bookingData.fare)) {
       const vehicleOptions = Object.keys(bookingData.fare).map((key) => {
         return {
           type: key,

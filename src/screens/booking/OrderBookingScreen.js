@@ -29,7 +29,6 @@ const OrderBookingScreen = (props) => {
 
   useEffect(() => {
     handlePermissionsLocation();
-    toggleBookingVisible();
   }, []);
 
   useEffect(() => {
