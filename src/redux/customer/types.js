@@ -1,0 +1,1 @@
+export const SET_CUSTOMER_ID = 'SET_CUSTOMER_ID';

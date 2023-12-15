@@ -8,11 +8,13 @@ import images from '~/themes/images';
 import { formatAccountNumber, responsiveFontSizeOS, responsiveSizeOS } from '~/helper/GeneralMain';
 import SCREENS from '~/constant/screens';
 import { NavigationContext } from '@react-navigation/native';
-import axios from 'axios';
-import { SERVER_URL } from '~/configs/api.config';
 import { storeToken } from '~/configs/storageUtils';
+import { loginApp } from '~/services/apiService';
+import { useAppDispatch } from '~/configs/hooks';
+import { setCustomerId } from '~/redux/customer/actions';
 
 const LoginScreen = () => {
+  const dispatch = useAppDispatch();
   const navigation = React.useContext(NavigationContext);
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [password, setPassword] = useState(null);
@@ -27,25 +29,27 @@ const LoginScreen = () => {
   }, [phoneNumber, password]);
 
   const handleLogin = async () => {
+    const resData = {
+      phoneNo: phoneNumber,
+      password: password,
+    };
     try {
-      const response = await axios.post(`${SERVER_URL}/v1/customers/login`, {
-        phoneNo: phoneNumber,
-        password: password,
-      });
-      console.log('Test 2 response: ', JSON.stringify(response));
-      const token = response.data.token;
-      if (response.status === 200 && token) {
+      const response = await loginApp(resData);
+      const token = response?.token;
+      const customerId = response?.data?.id ?? 10;
+      if (token && customerId) {
         // Lưu token vào AsyncStorage
         await storeToken(token);
 
+        // Cập nhật Redux store với customerId
+        dispatch(setCustomerId(customerId));
+
         // Chuyển hướng sau khi đăng nhập thành công
         navigation.navigate(SCREENS.HOME);
-      } else {
-        Alert.alert('Thông báo', 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
       }
     } catch (error) {
       console.log('Test 2 error: ', error);
-      Alert.alert('Thông báo', 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
+      return Alert.alert('Thông báo', 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
     }
   };
 

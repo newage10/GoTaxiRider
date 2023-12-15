@@ -7,11 +7,13 @@ import { formatAccountNumber, responsiveFontSizeOS, responsiveSizeOS } from '~/h
 import images from '~/themes/images';
 import { NavigationContext } from '@react-navigation/native';
 import SCREENS from '~/constant/screens';
-import axios from 'axios';
-import { SERVER_URL } from '~/configs/api.config';
 import { storeToken } from '~/configs/storageUtils';
+import { registerApp } from '~/services/apiService';
+import { useAppDispatch } from '~/configs/hooks';
+import { setCustomerId } from '~/redux/customer/actions';
 
 const RegisterScreen = () => {
+  const dispatch = useAppDispatch();
   const navigation = React.useContext(NavigationContext);
   const [fullName, setFullName] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
@@ -53,17 +55,22 @@ const RegisterScreen = () => {
   };
 
   const handleRegister = async () => {
+    const resData = {
+      phoneNo: phoneNumber,
+      password: password,
+      fullname: fullName,
+      email: email,
+    };
     try {
-      const response = await axios.post(`${SERVER_URL}/v1/customers/register`, {
-        phoneNo: phoneNumber,
-        password: password,
-        fullname: fullName,
-        email: email,
-      });
-      const token = response.data.token;
-      if (response.status === 200 && token) {
+      const response = await registerApp(resData);
+      const token = response?.token;
+      const customerId = response?.customer?.id ?? 10;
+      if (token && customerId) {
         // Lưu token vào AsyncStorage
         await storeToken(token);
+
+        // Cập nhật Redux store với customerId
+        dispatch(setCustomerId(customerId));
 
         // Chuyển hướng sau khi đăng nhập thành công
         navigation.navigate(SCREENS.HOME);
