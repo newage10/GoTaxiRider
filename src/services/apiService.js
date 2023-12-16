@@ -37,8 +37,29 @@ export const loginApp = async (loginData) => {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
+    }
+
+    return Alert.alert('Thông báo', errorMessage);
+  }
+};
+
+//Hàm đăng xuất app
+export const logoutApp = async () => {
+  try {
+    const response = await apiService.post('/customers/logout');
+    return response.data;
+  } catch (error) {
+    let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
+
+    // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
@@ -54,8 +75,10 @@ export const registerApp = async (registerData) => {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
@@ -71,8 +94,10 @@ export const getCarTypes = async () => {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
@@ -88,75 +113,83 @@ export const getAllServices = async () => {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
   }
 };
 
-// Hàm đăng ký xe
-export const registerCar = async (carData) => {
+// Hàm lấy thông tin khách hàng
+export const getCustomerInfo = async (customerId) => {
   try {
-    const response = await apiService.post('/car/create', carData);
+    const response = await apiService.get(`/customers/${customerId}`);
     return response.data;
   } catch (error) {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
   }
 };
 
-// Hàm lấy thông tin xe và dịch vụ của tài xế
-export const getDriverCars = async (driverId) => {
+export const calculateDistance = async (distanceData) => {
   try {
-    const response = await apiService.get(`/car/driverid/${driverId}`);
+    const response = await apiService.post('/distance', distanceData);
     return response.data;
   } catch (error) {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
   }
 };
 
-// Hàm lấy thông tin tài xế
-export const getDriverInfo = async (driverId) => {
+export const updateCustomerInfo = async (customerId, customerData) => {
   try {
-    const response = await apiService.get(`/driver/${driverId}`);
+    const response = await apiService.put(`/customers/updatecustomerinfo/${customerId}`, customerData);
     return response.data;
   } catch (error) {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);
   }
 };
 
-export const updateDriverInfo = async (driverId, driverData) => {
+export const bookRide = async (bookingData) => {
   try {
-    const response = await apiService.put(`/driver/updatedriverinfo/${driverId}`, driverData);
+    const response = await apiService.post('/booking/bookRide', bookingData);
     return response.data;
   } catch (error) {
     let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
 
     // Kiểm tra xem có phản hồi từ server không và có thông báo lỗi không
-    if (error?.response?.data) {
-      errorMessage = error.response.data.message || error.response.data;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message; // Giả sử 'message' là một chuỗi
+    } else if (error?.response?.data) {
+      errorMessage = JSON.stringify(error.response.data); // Chuyển đối tượng thành chuỗi
     }
 
     return Alert.alert('Thông báo', errorMessage);

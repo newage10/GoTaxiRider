@@ -129,7 +129,7 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.viewRightHeader}>
-            <TouchableOpacity style={styles.btnAcc} onPress={() => console.log('Test 200')}>
+            <TouchableOpacity style={styles.btnAcc} onPress={() => navigation.navigate(SCREENS.PROFILE_SCREEN)}>
               <FastImage source={images.icAcc} style={styles.imgAcc} resizeMode="contain" />
             </TouchableOpacity>
           </View>
@@ -143,7 +143,7 @@ const HomeScreen = () => {
    * @returns
    */
   const viewBottomSheet = () => {
-    return <HomeModal modalVisible={historyVisible} toggleModalVisible={toggleHistoryVisible} modalTitle={'Lịch sử đặt xe'} listDataModal={historyTrip} handleSelect={handleSelect} />;
+    return <HomeModal modalVisible={historyVisible} toggleModalVisible={toggleHistoryVisible} modalTitle={'Đặt chuyến nhanh'} listDataModal={historyTrip} handleSelect={handleSelect} />;
   };
 
   /**

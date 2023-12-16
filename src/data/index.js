@@ -123,6 +123,16 @@ export const locationData = [
     },
     country: 'VietNam',
   },
+  {
+    id: 13,
+    text: 'Vincom Center',
+    desc: '72 Đ. Lê Thánh Tôn, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh, Vietnam',
+    location: {
+      latitude: 10.778722048174899,
+      longitude: 106.7017392521749,
+    },
+    country: 'VietNam',
+  },
 ];
 
 export const historyBookData = [

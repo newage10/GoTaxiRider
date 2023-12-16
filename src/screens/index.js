@@ -14,6 +14,7 @@ import DirectionScreen from './booking/DirectionScreens';
 import MapSearchScreen from './search/MapSearchScreen';
 import OrderBookingScreen from './booking/OrderBookingScreen';
 import PlaceSearchComponent from './search/PlaceSearchComponent ';
+import AccInfoScreen from './profile/AccInfoScreen';
 
 const Stack = createNativeStackNavigator();
 const stackOptions = { headerShown: false, keyboardHandlingEnabled: true, headerVisible: false, gesturesEnabled: true };
@@ -32,6 +33,7 @@ const ScreensContainer = () => {
         <Stack.Screen name={SCREENS.MAP_SEARCH_SCREEN} component={MapSearchScreen} />
         <Stack.Screen name={SCREENS.ORDER_BOOKING_SCREEN} component={OrderBookingScreen} />
         <Stack.Screen name={SCREENS.PLACE_SEARCH_SCREEN} component={PlaceSearchComponent} />
+        <Stack.Screen name={SCREENS.ACC_INFO_SCREEN} component={AccInfoScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

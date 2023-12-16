@@ -32,12 +32,12 @@ const DriverReceiverModal = (props) => {
     toggleModalVisible();
   };
 
-  const handleSelect = (title) => () => {
-    setpointSelect(title);
+  const handleSelect = (item) => () => {
+    setpointSelect(item);
   };
 
   const hanldeSubmit = () => {
-    handleBooking();
+    handleBooking(pointSelect);
     handleClose();
   };
 
@@ -53,7 +53,7 @@ const DriverReceiverModal = (props) => {
 
     return (
       <>
-        <TouchableOpacity key={index} style={[styles.viewItem, pointSelect === name ? styles.viewItemEnable : null]} onPress={handleSelect(name)}>
+        <TouchableOpacity key={index} style={[styles.viewItem, pointSelect?.name === name ? styles.viewItemEnable : null]} onPress={handleSelect(item)}>
           <View style={styles.viewItemLeft}>
             {/* <FastImage source={imageSource[name]} style={styles.icItem} resizeMode="contain" /> */}
             <View style={styles.viewItemContent}>
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     width: '30%',
   },
   viewItemEnable: {
-    backgroundColor: '#d0aaf3',
+    backgroundColor: Colors.bgBlueT,
   },
   btnClose: {
     right: 0,

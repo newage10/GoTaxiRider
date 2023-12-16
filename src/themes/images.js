@@ -21,6 +21,7 @@ const images = {
   icCar: require('./images/icCar.png'),
   icCarXL: require('./images/icCarXL.png'),
   icMap: require('./images/icMap.png'),
+  iconNextTransparent: require('./images/iconNextTransparent.png'),
 };
 
 export default images;

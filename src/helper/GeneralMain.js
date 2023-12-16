@@ -116,3 +116,7 @@ export const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 export const GOOGLE_MAPS_APIKEY = 'AIzaSyD6yL5xr1ainr_kWZvnyRkL-x_c0uDUorw';
 // export const GOOGLE_MAPS_APIKEY = 'AIzaSyBv_3P3yNTVYWvi3fdSENaTV-jJ1XzWWAw';
 //AIzaSyD6yL5xr1ainr_kWZvnyRkL-x_c0uDUorw
+
+export function getBookingTime(timeString) {
+  return new Date(timeString);
+}
