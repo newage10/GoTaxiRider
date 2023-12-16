@@ -7,9 +7,6 @@ import { GOOGLE_MAPS_APIKEY, LATITUDE_DELTA, LONGITUDE_DELTA, getBookingTime, is
 import MapViewDirections from 'react-native-maps-directions';
 import { check, openSettings, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import { NavigationContext } from '@react-navigation/native';
-import axios from 'axios';
-import { getToken } from '~/configs/storageUtils';
-import { SERVER_URL } from '~/configs/api.config';
 import DriverReceiverModal from './DriverReceiverModal';
 import useToggleState from '~/hooks/useToggleState';
 import SCREENS from '~/constant/screens';
@@ -179,24 +176,6 @@ const OrderBookingScreen = (props) => {
       socketService.stopListeningForBookingStatus(handleBookingStatus);
     };
   }, [response]); // Phụ thuộc vào biến response để thiết lập và hủy lắng nghe
-
-  const handleBooking1 = (item) => {
-    console.log('Test item 500: ', JSON.stringify(item));
-    // const timerId = setTimeout(() => {
-    //   Alert.alert(
-    //     'Thông báo',
-    //     'Hoàn thành chuyến đi',
-    //     [
-    //       { text: 'Không', style: 'cancel' },
-    //       { text: 'Trang chủ', onPress: () => navigation.navigate(SCREENS.HOME) },
-    //     ],
-    //     { cancelable: true }
-    //   );
-    // }, 5000);
-    // return () => {
-    //   clearTimeout(timerId);
-    // };
-  };
 
   /**
    * Flow get ví trí hiện tại
