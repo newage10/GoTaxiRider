@@ -125,7 +125,7 @@ const HomeScreen = () => {
           <View style={styles.viewCenterHeader}>
             <TouchableOpacity style={styles.btnSearch} onPress={() => navigation.navigate(SCREENS.SEARCH_SCREEN, { currentPosition })}>
               <FastImage source={images.icSearch} style={styles.imgSearh} resizeMode="contain" />
-              <Text style={styles.txtSearch}>Thông tin các yêu cầu đặt xe</Text>
+              <Text style={styles.txtSearch}>Tìm kiếm chuyến đi và đặt xe </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.viewRightHeader}>

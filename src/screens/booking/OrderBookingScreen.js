@@ -16,7 +16,6 @@ import socketService from '~/services/socketService';
 
 const OrderBookingScreen = (props) => {
   const { directionData } = props?.route?.params ?? {};
-  console.log('Test directionData: ', JSON.stringify(directionData));
   const navigation = React.useContext(NavigationContext);
   const customerId = useAppSelector((state) => state?.customer?.customerId ?? 10);
   const [currentPosition, setCurrentPosition] = useState(null);
@@ -25,11 +24,19 @@ const OrderBookingScreen = (props) => {
   const [coordinates, setCoordinates] = useState([]);
   const [bookingVisible, toggleBookingVisible] = useToggleState(false);
   const [bookingData, setBookingData] = useState(null);
-  console.log('Test bookingData: ', JSON.stringify(bookingData));
   const [socketId, setSocketId] = useState(null);
   const [response, setResponse] = useState(null);
   const isSubscribed = useRef(true);
-  console.log('Test socketId: ', socketId);
+  const [isDriverLocationUpdated, setIsDriverLocationUpdated] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState({
+    latitude: directionData?.fromLocation?.latitude,
+    longitude: directionData?.fromLocation?.longitude,
+  });
+
+  const [destinationLocation, setDestinationLocation] = useState({
+    latitude: directionData?.toLocation?.latitude,
+    longitude: directionData?.toLocation?.longitude,
+  });
 
   const mapView = useRef(null);
 
@@ -83,8 +90,6 @@ const OrderBookingScreen = (props) => {
     try {
       const response = await calculateDistance(distanceData);
 
-      console.log('Distance API response: ', response);
-
       // Kiểm tra xem phản hồi có status thành công không
       if (response.status) {
         // Phản hồi thành công, lưu dữ liệu vào state
@@ -121,6 +126,7 @@ const OrderBookingScreen = (props) => {
 
   const handleBooking = async (item) => {
     const { type, name, distance, duration, price, pickupLocation, destination, carType, serviceId } = item ?? {};
+    console.log('Dữ liệu đặt chuyến: ', JSON.stringify(item));
     const bookingDetails = {
       data: {
         pickupLocationId: pickupLocation ?? 25,
@@ -139,41 +145,74 @@ const OrderBookingScreen = (props) => {
       bookingId: null,
     };
 
-    console.log('Test bookingDetails: ', JSON.stringify(bookingDetails));
-
     try {
       const response = await bookRide(bookingDetails);
       setResponse(response);
     } catch (error) {
       console.log('Booking error: ', error);
-      return Alert.alert('Thông báo', 'Đặt xe thất bại. Vui lòng đặt lại.');
+
+      return Alert.alert(
+        'Thông báo',
+        'Đặt lại chuyến',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              toggleBookingVisible();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     }
   };
 
   useEffect(() => {
-    // Hàm lắng nghe tình trạng đặt xe
-    console.log('Test isSubscribed.current: ', isSubscribed.current);
-    const handleBookingStatus = (data) => {
-      if (isSubscribed.current) {
-        console.log('Booking status received:', data);
-        const { id, status_description } = data ?? {};
-        if (id === 7) {
-          Alert.alert('Thông báo', status_description, [{ text: 'OK', onPress: () => navigation.navigate(SCREENS.HOME) }]);
-        } else {
-          // Xử lý thông thường cho các trạng thái khác
-          Alert.alert('Thông báo', status_description);
-        }
+    // Hàm xử lý dữ liệu vị trí tài xế nhận được từ server
+    const handleDriverLocation = (data) => {
+      console.log('Thông tin vị trí tài xế nhận từ server: ', JSON.stringify(data));
+      const [longitude, latitude] = data?.driver_location ?? [];
+      // Cập nhật vị trí hiện tại của tài xế
+      console.log('Thông tin kinh độ, vĩ độ: ', longitude, latitude);
+      if (longitude !== undefined && latitude !== undefined) {
+        setCurrentLocation({ latitude, longitude });
+        setIsDriverLocationUpdated(true);
       }
     };
 
-    console.log('Test 4 response 2: ', JSON.stringify(response));
+    // Bắt đầu lắng nghe sự kiện vị trí tài xế từ server
+    socketService.listenForDriverLocation(handleDriverLocation);
 
+    // Cleanup khi component unmount
+    return () => {
+      // Dừng lắng nghe sự kiện vị trí tài xế từ server
+      socketService.stopListeningForDriverLocation();
+    };
+  }, []);
+
+  useEffect(() => {
+    let intervalId;
+
+    // Hàm lắng nghe tình trạng đặt xe
+    const handleBookingStatus = (data) => {
+      console.log('Tình trạng chuyến xe: ', JSON.stringify(data));
+      const { id, status_description } = data?.status ?? {};
+      if (id === 7) {
+        Alert.alert('Thông báo', bookingType[id], [{ text: 'OK', onPress: () => navigation.navigate(SCREENS.HOME) }]);
+      } else {
+        Alert.alert('Thông báo', bookingType[id]);
+      }
+    };
+
+    console.log('Thông tin tài xế nhận chuyến xe ', JSON.stringify(response));
     // Bắt đầu lắng nghe sự kiện từ server nếu có phản hồi thành công
     if (response && !isEmptyParam(response.bookingId)) {
-      console.log('Test 4 response: ', JSON.stringify(response));
+      intervalId = setInterval(() => {
+        socketService.checkLocationDriver(response?.driver_accepted?.id);
+      }, 5000);
       const { fullname, phoneNo, Car } = response?.driver_accepted ?? {};
       Alert.alert(
-        'Thông báo chuyến đi',
+        'Đặt chuyến thành công',
         `Tài xế: ${fullname} \n Số điện thoại: ${phoneNo} \n Hiệu xe: ${Car?.carName}`,
         [
           {
@@ -186,14 +225,31 @@ const OrderBookingScreen = (props) => {
         ],
         { cancelable: false }
       );
+    } else {
+      Alert.alert(
+        'Thông báo',
+        'Đặt lại chuyến',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              toggleBookingVisible();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     }
 
     // Hàm cleanup khi component unmount
     return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
       isSubscribed.current = false;
-      socketService.stopListeningForBookingStatus(handleBookingStatus);
+      socketService.stopListeningForBookingStatus();
     };
-  }, [response]); // Phụ thuộc vào biến response để thiết lập và hủy lắng nghe
+  }, [response]);
 
   /**
    * Flow get ví trí hiện tại
@@ -287,51 +343,71 @@ const OrderBookingScreen = (props) => {
 
   return (
     <View style={styles.container}>
-      <MapView
-        initialRegion={{
-          latitude: currentLatitude,
-          longitude: currentLongitude,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA,
-        }}
-        style={StyleSheet.absoluteFill}
-        ref={mapView}
-        onPress={onMapPress}
-      >
-        {coordinates.map((coordinate, index) => (
-          <Marker key={`coordinate_${index}`} coordinate={coordinate} />
-        ))}
-        {coordinates.length >= 2 && (
-          <MapViewDirections
-            origin={coordinates[0]}
-            waypoints={coordinates.length > 2 ? coordinates.slice(1, -1) : undefined}
-            destination={coordinates[coordinates.length - 1]}
-            apikey={GOOGLE_MAPS_APIKEY}
-            strokeWidth={3}
-            strokeColor="hotpink"
-            optimizeWaypoints={true}
-            onStart={(params) => {
-              console.log(`Started routing between "${params.origin}" and "${params.destination}"`);
-            }}
-            onReady={(result) => {
-              console.log(`Distance: ${result.distance} km`);
-              console.log(`Duration: ${result.duration} min.`);
+      {!isDriverLocationUpdated ? (
+        <MapView
+          initialRegion={{
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          }}
+          style={StyleSheet.absoluteFill}
+          ref={mapView}
+          onPress={onMapPress}
+        >
+          {coordinates.map((coordinate, index) => (
+            <Marker key={`coordinate_${index}`} coordinate={coordinate} />
+          ))}
+          {coordinates.length >= 2 && (
+            <MapViewDirections
+              origin={coordinates[0]}
+              waypoints={coordinates.length > 2 ? coordinates.slice(1, -1) : undefined}
+              destination={coordinates[coordinates.length - 1]}
+              apikey={GOOGLE_MAPS_APIKEY}
+              strokeWidth={3}
+              strokeColor="hotpink"
+              optimizeWaypoints={true}
+              onStart={(params) => {
+                console.log(`Started routing between "${params.origin}" and "${params.destination}"`);
+              }}
+              onReady={(result) => {
+                console.log(`Distance: ${result.distance} km`);
+                console.log(`Duration: ${result.duration} min.`);
 
-              mapView.current.fitToCoordinates(result.coordinates, {
-                edgePadding: {
-                  right: screenWidth / 20,
-                  bottom: screenHeight / 20,
-                  left: screenWidth / 20,
-                  top: screenHeight / 20,
-                },
-              });
-            }}
-            onError={(errorMessage) => {
-              // console.log('GOT AN ERROR');
-            }}
-          />
-        )}
-      </MapView>
+                mapView.current.fitToCoordinates(result.coordinates, {
+                  edgePadding: {
+                    right: screenWidth / 20,
+                    bottom: screenHeight / 20,
+                    left: screenWidth / 20,
+                    top: screenHeight / 20,
+                  },
+                });
+              }}
+              onError={(errorMessage) => {
+                // console.log('GOT AN ERROR');
+              }}
+            />
+          )}
+        </MapView>
+      ) : (
+        <MapView
+          initialRegion={{
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          }}
+          style={StyleSheet.absoluteFill}
+          ref={mapView}
+          onPress={onMapPress}
+        >
+          {/* Marker for the current location */}
+          <Marker key={`coordinate_current`} coordinate={currentLocation} title={'Vị trí hiện tại'} />
+
+          {/* Marker for the destination */}
+          <Marker key={`coordinate_destination`} coordinate={destinationLocation} title={'Điểm đến'} />
+        </MapView>
+      )}
       <DriverReceiverModal modalVisible={bookingVisible} toggleModalVisible={toggleBookingVisible} bookingData={bookingData ?? defaultBooking} modalTitle={'Đặt chuyến'} handleBooking={handleBooking} />
     </View>
   );
@@ -364,10 +440,10 @@ const bookingType = {
   1: 'Đặt chuyến xe',
   2: 'Đang tìm tài xế',
   3: 'Tài xế đã nhận cuốc xe',
-  4: 'Tài xế đang đón khách',
+  4: 'Tài xế đến nơi đón khách',
   5: 'Đang trên đường đi',
   6: 'Đã đến nơi',
-  7: 'Hoàn thành',
+  7: 'Chuyến xe đã hoàn thành',
   8: 'Huỷ',
   10: 'Không có tài xế nhận đơn',
 };

@@ -1,7 +1,6 @@
 // socketService.js
 import io from 'socket.io-client';
 
-// Thay thế bằng địa chỉ URL thực tế của server Socket.IO
 // const SOCKET_URL = 'http://192.168.1.10:5000';
 const SOCKET_URL = 'http://35.220.201.164';
 const socket = io(SOCKET_URL, {
@@ -96,8 +95,24 @@ const socketService = {
   },
 
   // Hàm hủy nghe sự kiện
-  stopListeningForBookingStatus(callback) {
-    socket.off('booking_status', callback); // Ngắt lắng nghe sự kiện cụ thể với callback cụ thể
+  stopListeningForBookingStatus() {
+    socket.off('booking_status');
+  },
+
+  //hàm nghe sự kiện driver_location
+  listenForDriverLocation(callback) {
+    socket.on('driver_location', callback);
+  },
+
+  //Hàm hủy sự kiện lắng nghe driver_location
+  stopListeningForDriverLocation() {
+    socket.off('driver_location');
+  },
+
+  // Khách hàng chấp nhận cuốc xe
+  checkLocationDriver(driverId) {
+    console.log('Test check_location: ', driverId);
+    this.emit('check_location', { id: driverId });
   },
 };
 
