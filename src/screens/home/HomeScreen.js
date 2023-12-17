@@ -143,7 +143,7 @@ const HomeScreen = () => {
    * @returns
    */
   const viewBottomSheet = () => {
-    return <HomeModal modalVisible={historyVisible} toggleModalVisible={toggleHistoryVisible} modalTitle={'Đặt chuyến nhanh'} listDataModal={historyTrip} handleSelect={handleSelect} />;
+    return <HomeModal modalVisible={historyVisible} toggleModalVisible={toggleHistoryVisible} modalTitle={'Gợi ý đặt chuyến nhanh'} listDataModal={historyTrip} handleSelect={handleSelect} />;
   };
 
   /**
@@ -154,13 +154,6 @@ const HomeScreen = () => {
   const handleSelect = (item) => () => {
     console.log('Test 1 item: ', JSON.stringify(item));
     navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN, { directionData: item });
-    // navigation.navigate(SCREENS.ORDER_BOOKING_SCREEN, {
-    //   searchLocation: {
-    //     locationType: searchType.INPUT,
-    //     inputSource: { desc: item?.fromDesc, location: item?.fromLocation },
-    //     inputDestination: { desc: item?.toDesc, location: item?.toLocation },
-    //   },
-    // });
   };
 
   return (

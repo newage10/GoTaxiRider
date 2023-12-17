@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import { PermissionsLocation } from '~/constant/content';
-import { GOOGLE_MAPS_APIKEY, LATITUDE_DELTA, LONGITUDE_DELTA, getBookingTime, isEmptyObj, screenHeight, screenWidth } from '~/helper/GeneralMain';
+import { GOOGLE_MAPS_APIKEY, LATITUDE_DELTA, LONGITUDE_DELTA, getBookingTime, isEmptyObj, isEmptyParam, screenHeight, screenWidth } from '~/helper/GeneralMain';
 import MapViewDirections from 'react-native-maps-directions';
 import { check, openSettings, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import { NavigationContext } from '@react-navigation/native';
@@ -152,6 +152,7 @@ const OrderBookingScreen = (props) => {
 
   useEffect(() => {
     // Hàm lắng nghe tình trạng đặt xe
+    console.log('Test isSubscribed.current: ', isSubscribed.current);
     const handleBookingStatus = (data) => {
       if (isSubscribed.current) {
         console.log('Booking status received:', data);
@@ -165,9 +166,26 @@ const OrderBookingScreen = (props) => {
       }
     };
 
+    console.log('Test 4 response 2: ', JSON.stringify(response));
+
     // Bắt đầu lắng nghe sự kiện từ server nếu có phản hồi thành công
-    if (response && response.success) {
-      socketService.listenForBookingStatus(handleBookingStatus);
+    if (response && !isEmptyParam(response.bookingId)) {
+      console.log('Test 4 response: ', JSON.stringify(response));
+      const { fullname, phoneNo, Car } = response?.driver_accepted ?? {};
+      Alert.alert(
+        'Thông báo chuyến đi',
+        `Tài xế: ${fullname} \n Số điện thoại: ${phoneNo} \n Hiệu xe: ${Car?.carName}`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              console.log('Xác nhận chuyến');
+              socketService.listenForBookingStatus(handleBookingStatus);
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     }
 
     // Hàm cleanup khi component unmount
